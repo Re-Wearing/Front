@@ -1,0 +1,162 @@
+.board-page {
+  min-height: 100vh;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  background: url('https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=1600&q=80')
+      center/cover fixed,
+    linear-gradient(120deg, rgba(244, 235, 222, 0.85), rgba(238, 220, 198, 0.95));
+}
+
+.board-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.board-hero {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.board-hero h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.board-search {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.board-search input {
+  border-radius: 10px;
+  border: 1px solid #d7c7b2;
+  padding: 0.8rem 1rem;
+  min-width: 220px;
+}
+
+.board-search button {
+  border-radius: 10px;
+  border: none;
+  background: #2f261c;
+  color: #fff;
+  padding: 0.8rem 1.3rem;
+  font-weight: 600;
+}
+
+.board-tabs-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.board-tabs {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.board-tabs button {
+  border: none;
+  border-radius: 12px;
+  padding: 0.5rem 1.4rem;
+  background: rgba(255, 255, 255, 0.6);
+  color: #6e5a45;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.board-tabs button.active {
+  background: #1c5cc0;
+  color: #fff;
+}
+
+.board-write {
+  border: none;
+  border-radius: 12px;
+  background: #2f261c;
+  color: #fff;
+  padding: 0.55rem 1.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(47, 38, 28, 0.2);
+}
+
+.board-table {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(28, 22, 18, 0.1);
+  overflow: hidden;
+}
+
+.board-header,
+.board-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 140px 100px 110px;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+}
+
+.board-header {
+  font-weight: 600;
+  color: #6b5a45;
+  border-bottom: 1px solid rgba(215, 199, 178, 0.7);
+}
+
+.board-row {
+  border-bottom: 1px solid rgba(215, 199, 178, 0.4);
+}
+
+.board-row:last-of-type {
+  border-bottom: none;
+}
+
+.board-row.notice {
+  background: #c9961a;
+  color: #fff;
+  font-weight: 600;
+}
+
+.board-row.notice span {
+  color: inherit;
+}
+
+.board-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-icon {
+  font-style: normal;
+}
+
+.board-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.board-pagination button {
+  border: none;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.board-pagination button.active {
+  background: #2f261c;
+  color: #fff;
+}
+
