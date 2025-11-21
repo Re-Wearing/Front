@@ -157,6 +157,11 @@
   margin-bottom: 1rem;
 }
 
+.admin-manage-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .admin-table-wrapper {
   background: #fff;
   border-radius: 20px;
