@@ -69,27 +69,32 @@ export default function AdminFaqPage({
                     <h3>{inquiry.question}</h3>
                     <p className="admin-inquiry-message">{inquiry.description || inquiry.message}</p>
 
-                    <textarea
-                      className="admin-answer"
-                      placeholder={
-                        isAnswered ? '이미 답변이 등록된 문의입니다.' : '답변 내용을 등록하고 답변 등록 버튼을 눌러주세요.'
-                      }
-                      value={responses[inquiry.id] ?? inquiry.answer ?? ''}
-                      onChange={event => handleChange(inquiry.id, event.target.value)}
-                      disabled={isAnswered}
-                    />
+                    {isAnswered ? (
+                      <div className="admin-answer-view">
+                        <strong>등록된 답변</strong>
+                        <p>{inquiry.answer}</p>
+                      </div>
+                    ) : (
+                      <textarea
+                        className="admin-answer"
+                        placeholder="답변 내용을 등록하고 답변 등록 버튼을 눌러주세요."
+                        value={responses[inquiry.id] ?? inquiry.answer ?? ''}
+                        onChange={event => handleChange(inquiry.id, event.target.value)}
+                      />
+                    )}
 
-                    <div className="admin-inquiry-actions">
-                      <button
-                        type="button"
-                        className="btn primary"
-                        onClick={() => handleSubmit(inquiry.id)}
-                        disabled={isAnswered}
-                      >
-                        {isAnswered ? '답변 완료' : '답변 등록하기'}
-                      </button>
-                      <span className="admin-status">{isAnswered ? '답변 완료' : '답변 대기 중'}</span>
-                    </div>
+                    {!isAnswered ? (
+                      <div className="admin-inquiry-actions">
+                        <button type="button" className="btn primary" onClick={() => handleSubmit(inquiry.id)}>
+                          답변 등록하기
+                        </button>
+                        <span className="admin-status">답변 대기 중</span>
+                      </div>
+                    ) : (
+                      <div className="admin-inquiry-actions">
+                        <span className="admin-status">답변 완료</span>
+                      </div>
+                    )}
                   </article>
                 )
               })}
