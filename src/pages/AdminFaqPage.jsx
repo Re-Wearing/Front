@@ -9,7 +9,8 @@ export default function AdminFaqPage({
   onLogout,
   unreadCount,
   adminInquiries = [],
-  onSubmitAnswer = () => {}
+  onSubmitAnswer = () => {},
+  onMenu = () => {}
 }) {
   const [responses, setResponses] = useState({})
 
@@ -38,12 +39,13 @@ export default function AdminFaqPage({
           isLoggedIn={isLoggedIn}
           onLogout={onLogout}
           unreadCount={unreadCount}
+          onMenu={onMenu}
         />
 
         <article className="admin-faq-panel">
           <header className="admin-faq-header">
-            <p className="eyebrow">관리자 전용</p>
-            <h2>문의 답변 관리</h2>
+              <p className="eyebrow">관리자 전용</p>
+              <h2>문의 답변 관리</h2>
             <p>접수된 문의를 확인하고 답변을 등록해 이용자에게 빠르게 안내해 주세요.</p>
           </header>
 
@@ -75,25 +77,25 @@ export default function AdminFaqPage({
                         <p>{inquiry.answer}</p>
                       </div>
                     ) : (
-                      <textarea
-                        className="admin-answer"
-                        placeholder="답변 내용을 등록하고 답변 등록 버튼을 눌러주세요."
-                        value={responses[inquiry.id] ?? inquiry.answer ?? ''}
-                        onChange={event => handleChange(inquiry.id, event.target.value)}
-                      />
+                    <textarea
+                      className="admin-answer"
+                      placeholder="답변 내용을 등록하고 답변 등록 버튼을 눌러주세요."
+                      value={responses[inquiry.id] ?? inquiry.answer ?? ''}
+                      onChange={event => handleChange(inquiry.id, event.target.value)}
+                    />
                     )}
 
                     {!isAnswered ? (
-                      <div className="admin-inquiry-actions">
-                        <button type="button" className="btn primary" onClick={() => handleSubmit(inquiry.id)}>
-                          답변 등록하기
-                        </button>
+                    <div className="admin-inquiry-actions">
+                      <button type="button" className="btn primary" onClick={() => handleSubmit(inquiry.id)}>
+                        답변 등록하기
+                      </button>
                         <span className="admin-status">답변 대기 중</span>
                       </div>
                     ) : (
                       <div className="admin-inquiry-actions">
                         <span className="admin-status">답변 완료</span>
-                      </div>
+                    </div>
                     )}
                   </article>
                 )

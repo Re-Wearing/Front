@@ -8,7 +8,8 @@ export default function InquiryAnswersPage({
   onLogout,
   unreadCount,
   onBackToFaq,
-  inquiries = []
+  inquiries = [],
+  onMenu = () => {}
 }) {
   const ordered = [...inquiries].sort((a, b) => (a.submittedAt > b.submittedAt ? -1 : 1))
 
@@ -22,6 +23,7 @@ export default function InquiryAnswersPage({
           isLoggedIn={isLoggedIn}
           onLogout={onLogout}
           unreadCount={unreadCount}
+          onMenu={onMenu}
         />
 
         <article className="faq-panel">
@@ -39,20 +41,20 @@ export default function InquiryAnswersPage({
                 const isAnswered = inquiry.status === 'answered'
                 return (
                   <article key={inquiry.id} className={`answer-card${isAnswered ? ' answered' : ' pending'}`}>
-                    <div className="answer-card-meta">
+                  <div className="answer-card-meta">
                       <span>{inquiry.nickname || inquiry.requester}</span>
-                      <span>{inquiry.submittedAt}</span>
+                    <span>{inquiry.submittedAt}</span>
                       <span className={`answer-status ${isAnswered ? 'done' : 'waiting'}`}>
                         {isAnswered ? '답변 완료' : '답변 대기중.'}
                       </span>
-                    </div>
+                  </div>
                     <h3>{inquiry.title || inquiry.question}</h3>
                     <p className="answer-request">{inquiry.message || inquiry.description}</p>
                     <div className={`answer-body${isAnswered ? '' : ' pending'}`}>
                       <strong>{isAnswered ? '답변' : '담당자 확인 중'}</strong>
                       <p>{isAnswered ? inquiry.answer : '관리자가 확인 후 순차적으로 답변됩니다.'}</p>
-                    </div>
-                  </article>
+                  </div>
+                </article>
                 )
               })}
             </div>
