@@ -393,7 +393,8 @@ const handleInquirySubmit = ({ title, message }) => {
       title: `새 문의: ${trimmedTitle}`,
       type: 'alert',
       date,
-      read: false
+      read: false,
+      target: 'adminFaq'
     }
     return { ...prev, admin: [notification, ...adminList] }
   })
@@ -423,10 +424,11 @@ const handleAnswerSubmit = (inquiryId, answerText) => {
   if (!wasAnswered && target.requester && accounts[target.requester]) {
     const notification = {
       id: `inquiry-answer-${Date.now()}`,
-      title: '문의하기에 답변이 달렸어요',
+      title: `문의 답변: ${target.question}`,
       type: 'info',
       date: answeredAt,
-      read: false
+      read: false,
+      target: 'inquiryAnswers'
     }
     setNotifications(prev => ({
       ...prev,
@@ -594,6 +596,43 @@ const clearRecoveryContext = () => {
     })
   }
 
+  const handleNotificationRead = id => {
+    if (!currentUser) return
+    const username = currentUser.username
+    setNotifications(prev => {
+      const list = prev[username] || []
+      let changed = false
+      const nextList = list.map(notification => {
+        if (notification.id === id) {
+          if (!notification.read) {
+            changed = true
+          }
+          return { ...notification, read: true }
+        }
+        return notification
+      })
+      if (!changed) return { ...prev, [username]: nextList }
+      return {
+        ...prev,
+        [username]: nextList
+      }
+    })
+  }
+
+  const handleNotificationNavigate = notification => {
+    if (!notification?.target) return
+    switch (notification.target) {
+      case 'adminFaq':
+        goToAdminFaq({ push: true }, currentUser)
+        break
+      case 'inquiryAnswers':
+        goToInquiryAnswers({ push: true })
+        break
+      default:
+        break
+    }
+  }
+
   const activeNotifications = currentUser
     ? notifications[currentUser.username] || []
     : []
@@ -705,6 +744,8 @@ const clearRecoveryContext = () => {
         <NotificationPage
           notifications={activeNotifications}
           onDelete={handleNotificationDelete}
+          onMarkRead={handleNotificationRead}
+          onNavigate={handleNotificationNavigate}
           onClose={() => goToMain()}
         />
       ) : activePage === 'mypage' ? (
