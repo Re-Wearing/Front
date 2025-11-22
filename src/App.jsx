@@ -381,10 +381,6 @@ export default function App() {
     if (push) updatePath('/verification', { replace })
     else if (replace) updatePath('/verification', { replace: true })
   }
-
-
-const formatIsoDate = date => date.toISOString().split('T')[0]
-
 const formatIsoDate = date => date.toISOString().split('T')[0]
 
 const handleLoginSubmit = (username, password) => {
@@ -863,6 +859,7 @@ const clearRecoveryContext = () => {
           unreadCount={unreadCount}
           onBackToFaq={() => goToFaq()}
           inquiries={userInquiries}
+          onMenu={() => setIsMenuOpen(true)}
         />
       ) : activePage === 'adminFaq' ? (
         <AdminFaqPage
@@ -875,6 +872,7 @@ const clearRecoveryContext = () => {
           onBackToAdmin={() => goToMyPage({ push: false, replace: true }, currentUser)}
           adminInquiries={adminInquiries}
           onSubmitAnswer={handleAnswerSubmit}
+          onMenu={() => setIsMenuOpen(true)}
         />
       ) : activePage === 'forgotPassword' ? (
         <ForgotPasswordPage
@@ -914,6 +912,7 @@ const clearRecoveryContext = () => {
           hasInquiries={userInquiries.length > 0}
           answeredCount={answeredInquiryCount}
           onViewAnswers={() => goToInquiryAnswers()}
+          onMenu={() => setIsMenuOpen(true)}
         />
       ) : activePage === 'inquiry' ? (
         <InquiryPage

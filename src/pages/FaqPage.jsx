@@ -44,7 +44,8 @@ export default function FaqPage({
   unreadCount,
   hasInquiries = false,
   answeredCount = 0,
-  onViewAnswers = () => {}
+  onViewAnswers = () => {},
+  onMenu = () => {}
 }) {
   const [openIndexes, setOpenIndexes] = useState(() => new Set())
 
@@ -70,6 +71,7 @@ export default function FaqPage({
           isLoggedIn={isLoggedIn}
           onLogout={onLogout}
           unreadCount={unreadCount}
+          onMenu={onMenu}
         />
 
         <article className="faq-panel">
@@ -98,7 +100,7 @@ export default function FaqPage({
                   </span>
                 </button>
                   <div className={`faq-answer${isOpen ? '' : ' hidden'}`}>{item.answer}</div>
-                </article>
+              </article>
               )
             })}
           </div>
