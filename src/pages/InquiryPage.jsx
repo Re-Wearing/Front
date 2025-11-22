@@ -11,29 +11,29 @@ export default function InquiryPage({
   unreadCount,
   onSubmitInquiry = () => ({ success: true })
 }) {
+  const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
-  const [contactEmail, setContactEmail] = useState('')
   const [status, setStatus] = useState('')
 
   const handleSubmit = event => {
     event.preventDefault()
+    const trimmedTitle = title.trim()
     const trimmedMessage = message.trim()
-    const trimmedEmail = contactEmail.trim()
-    if (!trimmedMessage || !trimmedEmail) {
-      setStatus('필수 정보를 모두 입력해주세요.')
+    if (!trimmedTitle || !trimmedMessage) {
+      setStatus('문의 제목과 내용을 모두 입력해주세요.')
       return
     }
     const result = onSubmitInquiry({
-      message: trimmedMessage,
-      email: trimmedEmail
+      title: trimmedTitle,
+      message: trimmedMessage
     })
     if (!result.success) {
       setStatus(result.message || '문의 전송에 실패했습니다.')
       return
     }
     setStatus('문의가 전달되었습니다. 빠르게 답변 드릴게요.')
+    setTitle('')
     setMessage('')
-    setContactEmail('')
   }
 
   return (
@@ -59,22 +59,22 @@ export default function InquiryPage({
             궁금한 점이나 요청하실 사항을 남겨주시면 담당자가 빠르게 확인 후 답변 드립니다.
           </p>
           <form className="inquiry-form" onSubmit={handleSubmit}>
-            <label htmlFor="inquiry-message">무슨 문제가 있으신가요? (필수)</label>
+            <label htmlFor="inquiry-title">문의 제목 (필수)</label>
+            <input
+              id="inquiry-title"
+              type="text"
+              value={title}
+              onChange={event => setTitle(event.target.value)}
+              placeholder="예) 수거 일정 변경 요청"
+              required
+            />
+
+            <label htmlFor="inquiry-message">문의 내용 (필수)</label>
             <textarea
               id="inquiry-message"
               value={message}
               onChange={event => setMessage(event.target.value)}
               placeholder="내용을 자세히 적어주시면 더 정확한 안내가 가능합니다."
-              required
-            />
-
-            <label htmlFor="inquiry-email">이메일 주소 (필수)</label>
-            <input
-              id="inquiry-email"
-              type="email"
-              value={contactEmail}
-              onChange={event => setContactEmail(event.target.value)}
-              placeholder="example@rewear.com"
               required
             />
 

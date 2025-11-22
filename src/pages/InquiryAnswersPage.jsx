@@ -10,7 +10,7 @@ export default function InquiryAnswersPage({
   onBackToFaq,
   inquiries = []
 }) {
-  const answered = inquiries.filter(item => item.status === 'answered')
+  const ordered = [...inquiries].sort((a, b) => (a.submittedAt > b.submittedAt ? -1 : 1))
 
   return (
     <section className="main-page faq-page">
@@ -31,24 +31,30 @@ export default function InquiryAnswersPage({
             <p>답변이 등록되면 알림을 받고 여기에서 내용을 확인하실 수 있습니다.</p>
           </div>
 
-          {answered.length === 0 ? (
-            <p className="admin-empty">아직 답변이 등록되지 않았습니다.</p>
+          {ordered.length === 0 ? (
+            <p className="admin-empty">아직 등록한 문의가 없어요.</p>
           ) : (
             <div className="answer-list">
-              {answered.map(inquiry => (
-                <article key={inquiry.id} className="answer-card">
-                  <div className="answer-card-meta">
-                    <span>{inquiry.submittedAt}</span>
-                    <span>{inquiry.role}</span>
-                  </div>
-                  <h3>{inquiry.question}</h3>
-                  <p className="answer-request">{inquiry.description}</p>
-                  <div className="answer-body">
-                    <strong>답변</strong>
-                    <p>{inquiry.answer}</p>
-                  </div>
-                </article>
-              ))}
+              {ordered.map(inquiry => {
+                const isAnswered = inquiry.status === 'answered'
+                return (
+                  <article key={inquiry.id} className={`answer-card${isAnswered ? ' answered' : ' pending'}`}>
+                    <div className="answer-card-meta">
+                      <span>{inquiry.nickname || inquiry.requester}</span>
+                      <span>{inquiry.submittedAt}</span>
+                      <span className={`answer-status ${isAnswered ? 'done' : 'waiting'}`}>
+                        {isAnswered ? '답변 완료' : '답변 대기중.'}
+                      </span>
+                    </div>
+                    <h3>{inquiry.title || inquiry.question}</h3>
+                    <p className="answer-request">{inquiry.message || inquiry.description}</p>
+                    <div className={`answer-body${isAnswered ? '' : ' pending'}`}>
+                      <strong>{isAnswered ? '답변' : '담당자 확인 중'}</strong>
+                      <p>{isAnswered ? inquiry.answer : '관리자가 확인 후 순차적으로 답변됩니다.'}</p>
+                    </div>
+                  </article>
+                )
+              })}
             </div>
           )}
 

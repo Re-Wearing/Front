@@ -18,9 +18,9 @@
   margin-top: clamp(2rem, 4vw, 3rem);
   padding: clamp(2rem, 4vw, 4rem);
   border-radius: 40px;
-  border: 1px solid rgba(22, 17, 14, 0.3);
-  background: linear-gradient(120deg, #2e2418, #1a1209 55%);
-  color: #fdf6eb;
+  border: 1px solid rgba(205, 183, 150, 0.5);
+  background: linear-gradient(135deg, rgba(40, 30, 20, 0.03), rgba(235, 223, 206, 0.95)), #f3e5d3;
+  color: #2a241c;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2.5rem;
@@ -32,13 +32,12 @@
 .hero-section::after {
   content: '';
   position: absolute;
-  width: 420px;
-  height: 420px;
+  width: 260px;
+  height: 260px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.25), transparent 65%);
-  top: -160px;
-  right: -70px;
-  opacity: 0.5;
+  background: rgba(255, 255, 255, 0.2);
+  top: -80px;
+  right: -60px;
 }
 
 .hero-content {
@@ -49,21 +48,21 @@
 .hero-content h2 {
   font-size: clamp(2.8rem, 7vw, 4.2rem);
   margin: 0 0 1rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #fff8f0;
+  letter-spacing: 0.1em;
+  text-transform: none;
+  color: #1f1912;
 }
 
 .hero-lead {
   font-size: 1.15rem;
   margin: 0 0 0.5rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: #4a3f33;
 }
 
 .hero-sub {
   font-weight: 600;
   margin-bottom: 1.5rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: #2a241c;
 }
 
 .hero-stats {
@@ -206,14 +205,14 @@
   margin: 3rem 0 2rem;
   padding: clamp(1.8rem, 3vw, 2.5rem);
   border-radius: 40px;
-  background: linear-gradient(120deg, #3c321f, #1d1309);
-  color: #fff8f0;
+  background: linear-gradient(120deg, #f6e6cd, #f0d6b0);
+  color: #2b1d11;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  box-shadow: 0 20px 35px rgba(15, 7, 0, 0.35);
+  box-shadow: 0 20px 35px rgba(139, 109, 74, 0.2);
 }
 
 .cta-panel h3 {
