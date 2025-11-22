@@ -44,13 +44,20 @@ export default function FaqPage({
   unreadCount,
   hasInquiries = false,
   answeredCount = 0,
-  onViewAnswers = () => {},
-  onMenu = () => {}
+  onViewAnswers = () => {}
 }) {
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [openIndexes, setOpenIndexes] = useState(() => new Set())
 
   const toggleItem = index => {
-    setActiveIndex(prev => (prev === index ? null : index))
+    setOpenIndexes(prev => {
+      const next = new Set(prev)
+      if (next.has(index)) {
+        next.delete(index)
+      } else {
+        next.add(index)
+      }
+      return next
+    })
   }
 
   return (
@@ -63,7 +70,6 @@ export default function FaqPage({
           isLoggedIn={isLoggedIn}
           onLogout={onLogout}
           unreadCount={unreadCount}
-          onMenu={onMenu}
         />
 
         <article className="faq-panel">
@@ -77,11 +83,10 @@ export default function FaqPage({
           </div>
 
           <div className="faq-list">
-            {FAQ_ENTRIES.map((item, index) => (
-              <article
-                key={item.question}
-                className={`faq-item${activeIndex === index ? ' active' : ''}`}
-              >
+            {FAQ_ENTRIES.map((item, index) => {
+              const isOpen = openIndexes.has(index)
+              return (
+                <article key={item.question} className={`faq-item${isOpen ? ' active' : ''}`}>
                 <button
                   type="button"
                   className="faq-question"
@@ -92,11 +97,10 @@ export default function FaqPage({
                     +
                   </span>
                 </button>
-                <div className={`faq-answer${activeIndex === index ? '' : ' hidden'}`}>
-                  {item.answer}
-                </div>
-              </article>
-            ))}
+                  <div className={`faq-answer${isOpen ? '' : ' hidden'}`}>{item.answer}</div>
+                </article>
+              )
+            })}
           </div>
 
           <div className="faq-footer">
@@ -107,7 +111,7 @@ export default function FaqPage({
               </button>
               {hasInquiries ? (
                 <button type="button" className="btn primary" onClick={onViewAnswers}>
-                  {answeredCount > 0 ? `답변 확인하기 (${answeredCount})` : '답변 확인하기'}
+                  답변 확인하기
                 </button>
               ) : null}
             </div>
@@ -117,3 +121,4 @@ export default function FaqPage({
     </section>
   )
 }
+

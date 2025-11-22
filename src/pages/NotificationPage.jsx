@@ -11,6 +11,8 @@ const ICONS = {
 export default function NotificationPage({
   notifications = [],
   onDelete = () => {},
+  onMarkRead = () => {},
+  onNavigate = () => {},
   onClose = () => {}
 }) {
   return (
@@ -30,7 +32,13 @@ export default function NotificationPage({
               <li className="notification-empty">새로운 알림이 없습니다.</li>
             ) : (
               notifications.map(item => (
-                <NotificationRow key={item.id} item={item} onDelete={() => onDelete(item.id)} />
+                <NotificationRow
+                  key={item.id}
+                  item={item}
+                  onDelete={() => onDelete(item.id)}
+                  onMarkRead={() => onMarkRead(item.id)}
+                  onNavigate={() => onNavigate(item)}
+                />
               ))
             )}
           </ul>
@@ -40,7 +48,7 @@ export default function NotificationPage({
   )
 }
 
-function NotificationRow({ item, onDelete }) {
+function NotificationRow({ item, onDelete, onMarkRead, onNavigate }) {
   const icon = ICONS[item.type] || '🔔'
   const isUnread = !item.read
   const formattedDate = new Date(item.date).toLocaleDateString('en-US', {
@@ -49,14 +57,31 @@ function NotificationRow({ item, onDelete }) {
     year: 'numeric'
   })
 
+  const handleRowClick = () => {
+    if (isUnread) {
+      onMarkRead()
+    }
+    if (item.target) {
+      onNavigate()
+    }
+  }
+
   return (
-    <li className={`notification-item ${isUnread ? 'unread' : ''}`}>
+    <li className={`notification-item ${isUnread ? 'unread' : ''}`} onClick={handleRowClick}>
       <div className="notification-icon">{icon}</div>
       <div className="notification-content">
         <p className="notification-title">{item.title}</p>
         <span className="notification-date">{formattedDate}</span>
       </div>
-      <button type="button" className="notification-delete" aria-label="delete" onClick={onDelete}>
+      <button
+        type="button"
+        className="notification-delete"
+        aria-label="delete"
+        onClick={event => {
+          event.stopPropagation()
+          onDelete()
+        }}
+      >
         ×
       </button>
     </li>

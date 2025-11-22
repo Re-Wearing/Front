@@ -186,23 +186,14 @@
   font-size: 0.95rem;
   background: #fbfaf8;
   font-family: inherit;
-  resize: vertical;
-  min-height: 140px;
 }
 
 .inquiry-form textarea {
   min-height: 200px;
+  resize: vertical;
 }
 
-.inquiry-form input[type='text'],
-.inquiry-form input[type='email'] {
-  padding: 0.55rem 1rem;
-  min-height: auto;
-  line-height: 1.2;
-}
-
-.inquiry-form input[type='email'] {
-  padding: 0.55rem 1rem;
+.inquiry-form input {
   min-height: auto;
   line-height: 1.2;
 }
@@ -243,22 +234,9 @@
 
 .admin-faq-header {
   display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.4rem;
   margin-bottom: 1.5rem;
-}
-
-.admin-faq-back {
-  border-radius: 50%;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.1);
-  color: #000000;
-  font-size: 1.3rem;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
 }
 
 .admin-faq-header h2 {
@@ -274,7 +252,7 @@
 
 .admin-inquiry-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.25rem;
 }
 
@@ -288,6 +266,7 @@
   gap: 0.8rem;
   min-height: 320px;
   box-shadow: 0 15px 30px rgba(31, 23, 17, 0.08);
+  word-break: break-word;
 }
 
 .admin-inquiry-card h3 {
@@ -299,7 +278,7 @@
 .admin-inquiry-card p {
   margin: 0;
   color: #5c584c;
-  line-height: 1.6;
+  line-height: 1.4;
 }
 
 .admin-inquiry-meta {
@@ -311,6 +290,26 @@
   color: #7a6b55;
   text-transform: uppercase;
   letter-spacing: 0.2em;
+}
+
+.admin-nickname {
+  font-weight: 600;
+  color: #2b2318;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.admin-inquiry-email {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7a6b55;
+}
+
+.admin-inquiry-message {
+  margin: 0;
+  color: #5c584c;
+  line-height: 1.5;
+  white-space: pre-line;
 }
 
 .admin-chip {
@@ -335,12 +334,32 @@
   outline: 2px solid rgba(255, 255, 255, 0.5);
 }
 
+.admin-answer-view {
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(200, 180, 150, 0.7);
+  background: #f8fff9;
+  color: #1f1a13;
+  line-height: 1.5;
+}
+
+.admin-answer-view strong {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #17845a;
+}
+
 .admin-inquiry-actions {
   margin-top: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.admin-inquiry-actions .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .admin-status {
@@ -380,14 +399,38 @@
   box-shadow: 0 20px 40px rgba(31, 23, 17, 0.08);
 }
 
+.answer-card.pending {
+  border-color: rgba(255, 197, 140, 0.7);
+  background: #fff9f3;
+}
+
+.answer-card.answered {
+  border-color: rgba(82, 214, 163, 0.7);
+}
+
 .answer-card-meta {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
   font-size: 0.85rem;
   color: #7a6b55;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
+  text-transform: none;
+  letter-spacing: 0.05em;
   margin-bottom: 0.6rem;
+}
+
+.answer-status {
+  margin-left: auto;
+  font-weight: 700;
+  letter-spacing: normal;
+}
+
+.answer-status.waiting {
+  color: #f05f24;
+}
+
+.answer-status.done {
+  color: #1fa87c;
 }
 
 .answer-card h3 {
@@ -418,26 +461,12 @@
   color: #1f1a13;
 }
 
-.answer-card button.btn.secondary {
-  margin-top: 1rem;
-  align-self: flex-start;
+.answer-body.pending strong {
+  color: #b45a08;
 }
 
-.admin-requester {
-  color: #5c584c;
-  font-size: 0.95rem;
-  margin: 0.1rem 0;
-  line-height: 1.3;
-}
-
-.admin-requester strong {
-  margin-right: 0.4rem;
-}
-
-.admin-request {
-  font-weight: 600;
-  margin: 0.8rem 0 0.2rem;
-  color: #1f1a13;
+.answer-body.pending p {
+  color: #5f4630;
 }
 
 .admin-chip,
@@ -470,3 +499,10 @@
     padding: 1.5rem;
   }
 }
+
+@media (max-width: 960px) {
+  .admin-inquiry-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
