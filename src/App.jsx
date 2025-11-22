@@ -268,6 +268,7 @@ export default function App() {
     if (push) updatePath('/verification', { replace })
     else if (replace) updatePath('/verification', { replace: true })
   }
+<<<<<<< Updated upstream
 
 const handleNavRedirection = link => {
   const href = typeof link === 'string' ? link : link.href
@@ -282,6 +283,9 @@ const handleNavRedirection = link => {
   }
   return true
 }
+=======
+const formatIsoDate = date => date.toISOString().split('T')[0]
+>>>>>>> Stashed changes
 
 const handleLoginSubmit = (username, password) => {
   const trimmedId = username.trim()
@@ -573,6 +577,34 @@ const clearRecoveryContext = () => {
           onDeleteUser={handleAdminDeleteUser}
           onNavigateHome={goToMain}
         />
+<<<<<<< Updated upstream
+=======
+      ) : activePage === 'inquiryAnswers' ? (
+        <InquiryAnswersPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          onNotifications={goToNotifications}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          unreadCount={unreadCount}
+          onBackToFaq={() => goToFaq()}
+          inquiries={userInquiries}
+          onMenu={() => setIsMenuOpen(true)}
+        />
+      ) : activePage === 'adminFaq' ? (
+        <AdminFaqPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          onNotifications={goToNotifications}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          unreadCount={unreadCount}
+          onBackToAdmin={() => goToMyPage({ push: false, replace: true }, currentUser)}
+          adminInquiries={adminInquiries}
+          onSubmitAnswer={handleAnswerSubmit}
+          onMenu={() => setIsMenuOpen(true)}
+        />
+>>>>>>> Stashed changes
       ) : activePage === 'forgotPassword' ? (
         <ForgotPasswordPage
           onNavigateHome={goToMain}
@@ -599,6 +631,59 @@ const clearRecoveryContext = () => {
           }}
           onNavigateHome={goToMain}
         />
+<<<<<<< Updated upstream
+=======
+      ) : activePage === 'faq' ? (
+        <FaqPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          onInquiry={goToInquiry}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          hasInquiries={userInquiries.length > 0}
+          answeredCount={answeredInquiryCount}
+          onViewAnswers={() => goToInquiryAnswers()}
+          onMenu={() => setIsMenuOpen(true)}
+        />
+      ) : activePage === 'inquiry' ? (
+        <InquiryPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          onBack={() => goToFaq()}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          onSubmitInquiry={handleInquirySubmit}
+          onMenu={() => setIsMenuOpen(true)}
+        />
+      ) : activePage === 'donationStatus' ? (
+        <DonationStatusPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
+          onRequireLogin={goToLogin}
+        />
+      ) : activePage === 'organizationDonationStatus' ? (
+        <OrganizationDonationStatusPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
+          onRequireLogin={goToLogin}
+        />
+>>>>>>> Stashed changes
       ) : (
         <ExperienceLanding
           onLogin={goToLogin}
