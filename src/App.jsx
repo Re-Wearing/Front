@@ -222,7 +222,11 @@ export default function App() {
 
   const goToFaq = (options = {}) => {
     const { push = true, replace = false } = options
-    if (currentUser?.role === '관리자 회원') {
+    if (!currentUser) {
+      goToLogin(options)
+      return
+    }
+    if (currentUser.role === '관리자 회원') {
       goToAdminFaq(options, currentUser)
       return
     }
@@ -352,65 +356,83 @@ const handleLoginSubmit = (username, password) => {
   return { success: false }
 }
 
-const handleInquirySubmit = ({ message, email }) => {
-  const trimmedMessage = message.trim()
-  const trimmedEmail = email.trim()
-  if (!trimmedMessage || !trimmedEmail) {
-    return { success: false, message: '문의 내용과 이메일을 모두 입력해주세요.' }
+const handleInquirySubmit = ({ title, message }) => {
+  if (!currentUser) {
+    return { success: false, message: '로그인이 필요합니다.' }
   }
-  const summary = trimmedMessage.length > 60 ? `${trimmedMessage.slice(0, 60)}...` : trimmedMessage
+  const trimmedTitle = title.trim()
+  const trimmedMessage = message.trim()
+  if (!trimmedTitle || !trimmedMessage) {
+    return { success: false, message: '문의 제목과 내용을 모두 입력해주세요.' }
+  }
   const date = formatIsoDate(new Date())
-  const requester = currentUser?.username || 'guest'
-  const role =
-    currentUser?.role === '기관 회원' ? '기관 회원' : currentUser?.role === '관리자 회원' ? '관리자 회원' : '일반 회원'
-  setAdminInquiries(prev => [
-    {
-      id: `user-inquiry-${Date.now()}`,
-      question: summary,
-      description: `${trimmedMessage}\n\n회신 이메일: ${trimmedEmail}`,
-      role,
-      submittedAt: date,
-      requester,
-      status: 'pending',
-      answer: ''
-    },
-    ...prev
-  ])
+  const requester = currentUser.username
+  const role = currentUser.role
+  const nickname = profiles[requester]?.nickname || accounts[requester]?.name || requester
+  const displayEmail = accounts[requester]?.email || '등록된 이메일 정보 없음'
+  const entryId = `user-inquiry-${Date.now()}`
+  const entry = {
+    id: entryId,
+    question: trimmedTitle,
+    title: trimmedTitle,
+    message: trimmedMessage,
+    description: trimmedMessage,
+    email: displayEmail,
+    nickname,
+    role,
+    submittedAt: date,
+    requester,
+    status: 'pending',
+    answer: ''
+  }
+  setAdminInquiries(prev => [entry, ...prev])
+  setNotifications(prev => {
+    const adminList = prev.admin || []
+    const notification = {
+      id: `admin-inquiry-${entryId}`,
+      title: `새 문의: ${trimmedTitle}`,
+      type: 'alert',
+      date,
+      read: false
+    }
+    return { ...prev, admin: [notification, ...adminList] }
+  })
   return { success: true }
 }
 
 const handleAnswerSubmit = (inquiryId, answerText) => {
-  if (!answerText?.trim()) return
-  setAdminInquiries(prev => {
-    const target = prev.find(entry => entry.id === inquiryId)
-    if (!target) return prev
-    const answeredAt = formatIsoDate(new Date())
-    const updated = prev.map(entry =>
+  const trimmed = answerText?.trim()
+  if (!trimmed) return
+  const target = adminInquiries.find(entry => entry.id === inquiryId)
+  if (!target) return
+  const wasAnswered = target.status === 'answered'
+  const answeredAt = formatIsoDate(new Date())
+  setAdminInquiries(prev =>
+    prev.map(entry =>
       entry.id === inquiryId
         ? {
             ...entry,
-            answer: answerText.trim(),
+            answer: trimmed,
             status: 'answered',
             answeredAt,
             answeredBy: currentUser?.username || 'admin'
           }
         : entry
     )
-    if (target.requester && accounts[target.requester]) {
-      const notification = {
-        id: `inquiry-answer-${Date.now()}`,
-        title: '문의하기에 답변이 달렸어요',
-        type: 'info',
-        date: answeredAt,
-        read: false
-      }
-      setNotifications(prevNot => ({
-        ...prevNot,
-        [target.requester]: [notification, ...(prevNot[target.requester] || [])]
-      }))
+  )
+  if (!wasAnswered && target.requester && accounts[target.requester]) {
+    const notification = {
+      id: `inquiry-answer-${Date.now()}`,
+      title: '문의하기에 답변이 달렸어요',
+      type: 'info',
+      date: answeredAt,
+      read: false
     }
-    return updated
-  })
+    setNotifications(prev => ({
+      ...prev,
+      [target.requester]: [notification, ...(prev[target.requester] || [])]
+    }))
+  }
 }
 
 const handleLogout = () => {
@@ -577,6 +599,10 @@ const clearRecoveryContext = () => {
     : []
   const unreadCount = activeNotifications.filter(item => !item.read).length
   const currentProfile = currentUser ? profiles[currentUser.username] : null
+  const userInquiries = currentUser
+    ? adminInquiries.filter(inquiry => inquiry.requester === currentUser.username)
+    : []
+  const answeredInquiryCount = userInquiries.filter(inquiry => inquiry.status === 'answered').length
 
   const navigateByPath = (path, { userOverride } = {}) => {
     switch (path) {
@@ -709,7 +735,7 @@ const clearRecoveryContext = () => {
           onLogout={handleLogout}
           unreadCount={unreadCount}
           onBackToFaq={() => goToFaq()}
-          inquiries={adminInquiries}
+          inquiries={userInquiries}
         />
       ) : activePage === 'adminFaq' ? (
         <AdminFaqPage
@@ -719,7 +745,6 @@ const clearRecoveryContext = () => {
           isLoggedIn={isLoggedIn}
           onLogout={handleLogout}
           unreadCount={unreadCount}
-          onBackToAdmin={() => goToMyPage({ push: false, replace: true }, currentUser)}
           adminInquiries={adminInquiries}
           onSubmitAnswer={handleAnswerSubmit}
         />
@@ -758,10 +783,8 @@ const clearRecoveryContext = () => {
           onLogout={handleLogout}
           onNotifications={goToNotifications}
           unreadCount={unreadCount}
-          hasInquiries={currentUser ? adminInquiries.some(inquiry => inquiry.requester === currentUser.username) : false}
-          answeredCount={
-            currentUser ? adminInquiries.filter(inquiry => inquiry.requester === currentUser.username && inquiry.status === 'answered').length : 0
-          }
+          hasInquiries={userInquiries.length > 0}
+          answeredCount={answeredInquiryCount}
           onViewAnswers={() => goToInquiryAnswers()}
         />
       ) : activePage === 'inquiry' ? (
