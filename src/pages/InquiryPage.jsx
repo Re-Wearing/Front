@@ -9,7 +9,8 @@ export default function InquiryPage({
   onLogout,
   onNotifications,
   unreadCount,
-  onSubmitInquiry = () => ({ success: true })
+  onSubmitInquiry = () => ({ success: true }),
+  onMenu = () => {}
 }) {
   const [message, setMessage] = useState('')
   const [contactName, setContactName] = useState('')
@@ -50,6 +51,7 @@ export default function InquiryPage({
           isLoggedIn={isLoggedIn}
           onLogout={onLogout}
           unreadCount={unreadCount}
+          onMenu={onMenu}
         />
 
         <article className="inquiry-card">

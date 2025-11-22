@@ -44,7 +44,8 @@ export default function FaqPage({
   unreadCount,
   hasInquiries = false,
   answeredCount = 0,
-  onViewAnswers = () => {}
+  onViewAnswers = () => {},
+  onMenu = () => {}
 }) {
   const [activeIndex, setActiveIndex] = useState(0)
 
@@ -62,6 +63,7 @@ export default function FaqPage({
           isLoggedIn={isLoggedIn}
           onLogout={onLogout}
           unreadCount={unreadCount}
+          onMenu={onMenu}
         />
 
         <article className="faq-panel">
