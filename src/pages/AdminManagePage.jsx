@@ -6,7 +6,8 @@ export default function AdminManagePage({
   notifications,
   onResetPassword,
   onDeleteUser,
-  onNavigateHome
+  onNavigateHome,
+  onManageFaqs
 }) {
   const [resetMessage, setResetMessage] = useState('')
 
@@ -37,12 +38,19 @@ export default function AdminManagePage({
 
   return (
     <div className="admin-manage-page">
-      <div className="admin-manage-header">
-        <h1>회원 관리</h1>
-        <button type="button" className="btn primary" onClick={() => onNavigateHome('/main')}>
-          메인으로
+  <div className="admin-manage-header">
+    <h1>회원 관리</h1>
+    <div className="admin-manage-header-actions">
+      {onManageFaqs ? (
+        <button type="button" className="btn secondary" onClick={onManageFaqs}>
+          문의 답변 관리
         </button>
-      </div>
+      ) : null}
+      <button type="button" className="btn primary" onClick={() => onNavigateHome('/main')}>
+        메인으로
+      </button>
+    </div>
+  </div>
 
       <p className="helper">{resetMessage}</p>
 

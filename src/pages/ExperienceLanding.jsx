@@ -9,12 +9,12 @@ import {
 export default function ExperienceLanding({
   onLogin = () => {},
   onSignup = () => {},
-  onMenu = () => {},
   onNavLink,
   isLoggedIn = false,
   onLogout = () => {},
   onNotifications = () => {},
-  unreadCount = 0
+  unreadCount = 0,
+  onMenu = () => {}
 }) {
   return (
     <section className="main-page">
@@ -22,12 +22,12 @@ export default function ExperienceLanding({
         <HeaderLanding
           navLinks={mainNavLinks}
           onLogin={onLogin}
-          onMenu={onMenu}
           onNavClick={onNavLink}
           isLoggedIn={isLoggedIn}
           onLogout={onLogout}
           onNotifications={onNotifications}
           unreadCount={unreadCount}
+          onMenu={onMenu}
         />
 
         <section className="hero-section" id="hero">

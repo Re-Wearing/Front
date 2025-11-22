@@ -19,7 +19,8 @@ export default function LoginPage({
   onNotifications = () => {},
   onForgotPassword = () => {},
   onForgotId = () => {},
-  unreadCount = 0
+  unreadCount = 0,
+  onMenu = () => {}
 }) {
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
@@ -75,6 +76,7 @@ export default function LoginPage({
           onLogout={onLogout}
           onNotifications={onNotifications}
           unreadCount={unreadCount}
+          onMenu={onMenu}
         />
 
         <section className="auth-stage">

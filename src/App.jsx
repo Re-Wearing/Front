@@ -13,7 +13,10 @@ import AdminManagePage from './pages/AdminManagePage'
 import AdminFaqPage from './pages/AdminFaqPage'
 import FaqPage from './pages/FaqPage'
 import InquiryPage from './pages/InquiryPage'
-import InquiryAnswersPage from './pages/InquiryAnswersPage'
+import InquiryAnswerPage from './pages/InquiryAnswerPage'
+import DonationStatusPage from './pages/DonationStatusPage'
+import OrganizationDonationStatusPage from './pages/OrganizationDonationStatusPage'
+import CategoryMenu from './components/CategoryMenu'
 import './styles/common.css'
 import './styles/intro.css'
 import './styles/signup.css'
@@ -22,6 +25,8 @@ import './styles/board.css'
 import './styles/notification.css'
 import './styles/mypage.css'
 import './styles/faq.css'
+import './styles/category-menu.css'
+import './styles/donation-status.css'
 import { ADMIN_FAQ_SEED } from './constants/adminFaqData'
 
 const INITIAL_ACCOUNTS = {
@@ -118,10 +123,24 @@ const INITIAL_NOTIFICATIONS = {
 }
 
 const LANDING_KEY = 'rewearLandingSeen'
+const ADMIN_INQUIRIES_KEY = 'rewearAdminInquiries'
 
 const hasSeenLanding = () => {
   if (typeof window === 'undefined') return false
   return window.sessionStorage.getItem(LANDING_KEY) === 'true'
+}
+
+const loadAdminInquiries = () => {
+  if (typeof window === 'undefined') return []
+  try {
+    const stored = window.sessionStorage.getItem(ADMIN_INQUIRIES_KEY)
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch (e) {
+    console.error('Failed to load admin inquiries:', e)
+  }
+  return []
 }
 
 export default function App() {
@@ -138,6 +157,7 @@ export default function App() {
   const [accounts, setAccounts] = useState(INITIAL_ACCOUNTS)
   const [profiles, setProfiles] = useState(INITIAL_PROFILES)
   const currentUserRef = useRef(null)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [adminInquiries, setAdminInquiries] = useState(ADMIN_FAQ_SEED)
   const updatePath = (path, { replace = false } = {}) => {
     setCurrentPath(path)
@@ -195,6 +215,11 @@ export default function App() {
     if (push) updatePath(path, { replace })
     else if (replace) updatePath(path, { replace: true })
   }
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.sessionStorage.setItem(ADMIN_INQUIRIES_KEY, JSON.stringify(adminInquiries))
+  }, [adminInquiries])
 
   const goToSignup = (options = {}) => {
     const { push = true, replace = false } = options
@@ -254,6 +279,38 @@ export default function App() {
     setActivePage('inquiryAnswers')
     if (push) updatePath('/faq/answers', { replace })
     else if (replace) updatePath('/faq/answers', { replace: true })
+  }
+
+  const goToDonationStatus = (options = {}) => {
+    const { push = true, replace = false } = options
+    if (!currentUser) {
+      goToLogin(options)
+      return
+    }
+    if (currentUser.role === '기관 회원' || currentUser.role === '관리자 회원') {
+      goToMain('/main', options)
+      return
+    }
+    setShowLanding(false)
+    setActivePage('donationStatus')
+    if (push) updatePath('/donation-status', { replace })
+    else if (replace) updatePath('/donation-status', { replace: true })
+  }
+
+  const goToOrganizationDonationStatus = (options = {}) => {
+    const { push = true, replace = false } = options
+    if (!currentUser) {
+      goToLogin(options)
+      return
+    }
+    if (currentUser.role !== '기관 회원') {
+      goToMain('/main', options)
+      return
+    }
+    setShowLanding(false)
+    setActivePage('organizationDonationStatus')
+    if (push) updatePath('/organization/donation-status', { replace })
+    else if (replace) updatePath('/organization/donation-status', { replace: true })
   }
 
   const goToMyPage = (options = {}, userOverride) => {
@@ -325,19 +382,8 @@ export default function App() {
     else if (replace) updatePath('/verification', { replace: true })
   }
 
-const handleNavRedirection = link => {
-  const href = typeof link === 'string' ? link : link.href
-  if (href === '#board') {
-    goToBoard()
-  } else if (href === '#mypage') {
-    goToMyPage()
-  } else if (href === '#faq') {
-    goToFaq()
-  } else {
-    goToMain('/main')
-  }
-  return true
-}
+
+const formatIsoDate = date => date.toISOString().split('T')[0]
 
 const formatIsoDate = date => date.toISOString().split('T')[0]
 
@@ -643,6 +689,32 @@ const clearRecoveryContext = () => {
     : []
   const answeredInquiryCount = userInquiries.filter(inquiry => inquiry.status === 'answered').length
 
+  const handleNavRedirection = link => {
+    const href = typeof link === 'string' ? link : link.href
+    if (href === '/donation-status' || href === '#donation-status') {
+      // 기관 회원이면 기관용 페이지로, 일반 회원이면 일반용 페이지로
+      if (currentUser?.role === '기관 회원') {
+        goToOrganizationDonationStatus()
+      } else {
+        goToDonationStatus()
+      }
+    } else if (href === '/faq' || href === '#faq') {
+      goToFaq()
+    } else if (href === '/inquiry' || href === '#inquiry') {
+      goToInquiry()
+    } else if (href === '#donation') {
+      // 기부하기 페이지가 없으므로 메인으로 이동
+      goToMain('/main')
+    } else if (href === '#board') {
+      goToBoard()
+    } else if (href === '#mypage') {
+      goToMyPage()
+    } else {
+      goToMain('/main')
+    }
+    return true
+  }
+
   const navigateByPath = (path, { userOverride } = {}) => {
     switch (path) {
       case '/':
@@ -688,6 +760,12 @@ const clearRecoveryContext = () => {
       case '/verification':
         goToVerification({ push: false, replace: true })
         break
+      case '/donation-status':
+        goToDonationStatus({ push: false, replace: true })
+        break
+      case '/organization/donation-status':
+        goToOrganizationDonationStatus({ push: false, replace: true })
+        break
       default:
         goToMain('/main', { push: false, replace: true })
     }
@@ -705,6 +783,11 @@ const clearRecoveryContext = () => {
 
   return (
     <div className="app-root">
+      <CategoryMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        onNavClick={handleNavRedirection}
+      />
       {showLanding ? (
         <IntroLanding onClose={goToMain} onLogin={goToLogin} onSignup={goToSignup} />
       ) : activePage === 'signup' ? (
@@ -716,6 +799,7 @@ const clearRecoveryContext = () => {
           onLogout={handleLogout}
           onNotifications={goToNotifications}
           unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
         />
       ) : activePage === 'login' ? (
         <LoginPage
@@ -729,6 +813,7 @@ const clearRecoveryContext = () => {
           onForgotPassword={goToForgotPassword}
           onForgotId={goToForgotId}
           unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
         />
       ) : activePage === 'board' ? (
         <BoardPage
@@ -739,6 +824,7 @@ const clearRecoveryContext = () => {
           onLogout={handleLogout}
           onNotifications={goToNotifications}
           unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
         />
       ) : activePage === 'notification' ? (
         <NotificationPage
@@ -786,6 +872,7 @@ const clearRecoveryContext = () => {
           isLoggedIn={isLoggedIn}
           onLogout={handleLogout}
           unreadCount={unreadCount}
+          onBackToAdmin={() => goToMyPage({ push: false, replace: true }, currentUser)}
           adminInquiries={adminInquiries}
           onSubmitAnswer={handleAnswerSubmit}
         />
@@ -838,6 +925,31 @@ const clearRecoveryContext = () => {
           onNotifications={goToNotifications}
           unreadCount={unreadCount}
           onSubmitInquiry={handleInquirySubmit}
+          onMenu={() => setIsMenuOpen(true)}
+        />
+      ) : activePage === 'donationStatus' ? (
+        <DonationStatusPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
+          onRequireLogin={goToLogin}
+        />
+      ) : activePage === 'organizationDonationStatus' ? (
+        <OrganizationDonationStatusPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
+          onRequireLogin={goToLogin}
         />
       ) : (
         <ExperienceLanding
@@ -848,6 +960,7 @@ const clearRecoveryContext = () => {
           onLogout={handleLogout}
           onNotifications={goToNotifications}
           unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
         />
       )}
     </div>

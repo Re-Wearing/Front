@@ -16,7 +16,8 @@ export default function SignupPage({
   isLoggedIn = false,
   onLogout = () => {},
   onNotifications = () => {},
-  unreadCount = 0
+  unreadCount = 0,
+  onMenu = () => {}
 }) {
   const [membership, setMembership] = useState(membershipOptions[0].value)
   const [passwordVisible, setPasswordVisible] = useState(false)
@@ -38,6 +39,7 @@ export default function SignupPage({
           onLogout={onLogout}
           onNotifications={onNotifications}
           unreadCount={unreadCount}
+          onMenu={onMenu}
         />
 
         <section className="signup-stage">

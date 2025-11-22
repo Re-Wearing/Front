@@ -8,7 +8,8 @@ export default function BoardPage({
   isLoggedIn = false,
   onLogout = () => {},
   onNotifications = () => {},
-  unreadCount = 0
+  unreadCount = 0,
+  onMenu = () => {}
 }) {
   const tabs = boardTabs
 
@@ -24,6 +25,7 @@ export default function BoardPage({
           onLogout={onLogout}
           onNotifications={onNotifications}
           unreadCount={unreadCount}
+          onMenu={onMenu}
         />
 
         <section className="board-hero">
