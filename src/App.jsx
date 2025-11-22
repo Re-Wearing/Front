@@ -10,6 +10,11 @@ import VerificationPage from './pages/VerificationPage'
 import NotificationPage from './pages/NotificationPage'
 import MyPage from './pages/MyPage'
 import AdminManagePage from './pages/AdminManagePage'
+import { ADMIN_FAQ_SEED } from './constants/adminFaqData'
+import FaqPage from './pages/FaqPage'
+import InquiryPage from './pages/InquiryPage'
+import InquiryAnswerPage from './pages/InquiryAnswerPage'
+import AdminFaqPage from './pages/AdminFaqPage'
 import './styles/common.css'
 import './styles/intro.css'
 import './styles/signup.css'
@@ -17,6 +22,7 @@ import './styles/main.css'
 import './styles/board.css'
 import './styles/notification.css'
 import './styles/mypage.css'
+import './styles/faq.css'
 
 const INITIAL_ACCOUNTS = {
   admin: {
@@ -131,6 +137,7 @@ export default function App() {
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS)
   const [accounts, setAccounts] = useState(INITIAL_ACCOUNTS)
   const [profiles, setProfiles] = useState(INITIAL_PROFILES)
+  const [inquiries, setInquiries] = useState(ADMIN_FAQ_SEED)
   const currentUserRef = useRef(null)
   const updatePath = (path, { replace = false } = {}) => {
     setCurrentPath(path)
@@ -269,6 +276,43 @@ export default function App() {
     else if (replace) updatePath('/verification', { replace: true })
   }
 
+const goToFaq = (options = {}) => {
+  const { push = true, replace = false } = options
+  setShowLanding(false)
+  setActivePage('faq')
+  if (push) updatePath('/faq', { replace })
+  else if (replace) updatePath('/faq', { replace: true })
+}
+
+const goToInquiry = (options = {}) => {
+  const { push = true, replace = false } = options
+  setShowLanding(false)
+  setActivePage('inquiry')
+  if (push) updatePath('/inquiry', { replace })
+  else if (replace) updatePath('/inquiry', { replace: true })
+}
+
+const goToInquiryAnswers = (options = {}) => {
+  const { push = true, replace = false } = options
+  setShowLanding(false)
+  setActivePage('inquiryAnswers')
+  if (push) updatePath('/inquiry/answers', { replace })
+  else if (replace) updatePath('/inquiry/answers', { replace: true })
+}
+
+const goToAdminFaq = (options = {}, userOverride) => {
+  const { push = true, replace = false } = options
+  const targetUser = userOverride || currentUser
+  if (!targetUser || targetUser.role !== '관리자 회원') {
+    goToLogin(options)
+    return
+  }
+  setShowLanding(false)
+  setActivePage('adminFaq')
+  if (push) updatePath('/admin/faq', { replace })
+  else if (replace) updatePath('/admin/faq', { replace: true })
+}
+
 const handleNavRedirection = link => {
   const href = typeof link === 'string' ? link : link.href
   if (href === '#board') {
@@ -276,7 +320,7 @@ const handleNavRedirection = link => {
   } else if (href === '#mypage') {
     goToMyPage()
   } else if (href === '#faq') {
-    goToMain('/faq')
+    goToFaq()
   } else {
     goToMain('/main')
   }
@@ -457,11 +501,54 @@ const clearRecoveryContext = () => {
     })
   }
 
+const handleSubmitInquiry = ({ message, email, name }) => {
+  const trimmedMessage = message.trim()
+  const submittedAt = new Date().toISOString().split('T')[0]
+  const questionPreview = trimmedMessage.split('\n')[0] || '문의 요청'
+  setInquiries(prev => [
+    ...prev,
+    {
+      id: `inquiry-${Date.now()}`,
+      role: currentUser?.role || '비회원',
+      name,
+      email,
+      submittedAt,
+      question: questionPreview,
+      description: trimmedMessage,
+      status: 'pending'
+    }
+  ])
+  return { success: true }
+}
+
+const handleDeleteInquiry = id => {
+  setInquiries(prev => prev.filter(item => item.id !== id))
+}
+
+const handleSubmitAnswer = (id, text) => {
+  setInquiries(prev =>
+    prev.map(item =>
+      item.id === id
+        ? {
+            ...item,
+            status: 'answered',
+            answer: text
+          }
+        : item
+    )
+  )
+}
+
+const handleBackToAdmin = () => {
+  goToMyPage({ push: false, replace: true }, currentUser)
+}
+
   const activeNotifications = currentUser
     ? notifications[currentUser.username] || []
     : []
   const unreadCount = activeNotifications.filter(item => !item.read).length
   const currentProfile = currentUser ? profiles[currentUser.username] : null
+const answeredInquiries = inquiries.filter(item => item.status === 'answered')
 
   const navigateByPath = (path, { userOverride } = {}) => {
     switch (path) {
@@ -478,11 +565,23 @@ const clearRecoveryContext = () => {
       case '/board':
         goToBoard({ push: false, replace: true })
         break
+      case '/faq':
+        goToFaq({ push: false, replace: true })
+        break
+      case '/inquiry':
+        goToInquiry({ push: false, replace: true })
+        break
+      case '/inquiry/answers':
+        goToInquiryAnswers({ push: false, replace: true })
+        break
       case '/mypage':
         goToMyPage({ push: false, replace: true }, userOverride)
         break
       case '/admin/manage':
         goToMyPage({ push: false, replace: true }, userOverride ?? currentUser)
+        break
+      case '/admin/faq':
+        goToAdminFaq({ push: false, replace: true }, userOverride)
         break
       case '/notification':
         goToNotifications({ push: false, replace: true }, userOverride)
@@ -572,6 +671,55 @@ const clearRecoveryContext = () => {
           onResetPassword={handleAdminPasswordReset}
           onDeleteUser={handleAdminDeleteUser}
           onNavigateHome={goToMain}
+          onManageFaqs={() => goToAdminFaq({}, currentUser)}
+        />
+      ) : activePage === 'faq' ? (
+        <FaqPage
+          onNavLink={handleNavRedirection}
+          onNavigateHome={goToMain}
+          onInquiry={() => goToInquiry()}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          hasInquiries={answeredInquiries.length > 0}
+          answeredCount={answeredInquiries.length}
+          onViewAnswers={() => goToInquiryAnswers()}
+        />
+      ) : activePage === 'inquiry' ? (
+        <InquiryPage
+          onBack={() => goToFaq({ push: false, replace: true })}
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          onSubmitInquiry={handleSubmitInquiry}
+        />
+      ) : activePage === 'inquiryAnswers' ? (
+        <InquiryAnswerPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          onNotifications={goToNotifications}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          unreadCount={unreadCount}
+          onBackToFaq={() => goToFaq({ push: false, replace: true })}
+          inquiries={answeredInquiries}
+          onDeleteInquiry={handleDeleteInquiry}
+        />
+      ) : activePage === 'adminFaq' ? (
+        <AdminFaqPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          onNotifications={goToNotifications}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          unreadCount={unreadCount}
+          onBackToAdmin={handleBackToAdmin}
+          adminInquiries={inquiries}
+          onSubmitAnswer={handleSubmitAnswer}
         />
       ) : activePage === 'forgotPassword' ? (
         <ForgotPasswordPage
