@@ -18,6 +18,8 @@ import DonationStatusPage from './pages/DonationStatusPage'
 import OrganizationDonationStatusPage from './pages/OrganizationDonationStatusPage'
 import CategoryMenu from './components/CategoryMenu'
 import DeliveryCheckPage from './pages/DeliveryCheckPage'
+import "./styles/delivery-check.css";
+
 
 import './styles/common.css'
 import './styles/intro.css'
