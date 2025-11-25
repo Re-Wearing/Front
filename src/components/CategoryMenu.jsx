@@ -13,7 +13,8 @@ export default function CategoryMenu({ isOpen, onClose, onNavClick }) {
       title: '마이페이지',
       items: [
         { label: '마이페이지', href: '#mypage' },
-        { label: '기부 현황 조회', href: '/donation-status', action: 'donation-status' }
+        { label: '기부 현황 조회', href: '/donation-status', action: 'donation-status' },
+        { label: '배송 조회', href: '#delivery-check' }
       ]
     },
       {
