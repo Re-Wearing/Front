@@ -19,6 +19,9 @@ import OrganizationDonationStatusPage from './pages/OrganizationDonationStatusPa
 import CategoryMenu from './components/CategoryMenu'
 import DeliveryCheckPage from './pages/DeliveryCheckPage'
 import "./styles/delivery-check.css";
+import BusinessIntroPage from './pages/BusinessIntroPage';
+import './styles/business-intro.css'
+
 
 
 import './styles/common.css'
@@ -307,6 +310,14 @@ export default function App() {
     if (push) updatePath('/delivery-check', { replace })
     else if (replace) updatePath('/delivery-check', { replace: true })
   }
+  const goToBusinessIntro = (options = {}) => {
+    const { push = true, replace = false } = options;
+    setShowLanding(false);
+    setActivePage('businessIntro');
+    if (push) updatePath('/business', { replace });
+    else if (replace) updatePath('/business', { replace: true });
+  };
+  
   
 
   const goToOrganizationDonationStatus = (options = {}) => {
@@ -709,11 +720,12 @@ export default function App() {
       }
     } else if (href === '/faq' || href === '#faq') {
       goToFaq()
+    } else if (href === '/business' || href === '#about') {
+      goToBusinessIntro()
     } else if (href === '/inquiry' || href === '#inquiry') {
       goToInquiry()
     } else if (href === '/delivery-check' || href === '#delivery-check') {
       goToDeliveryCheck()
-  
     } else if (href === '#donation') {
       // 기부하기 페이지가 없으므로 메인으로 이동
       goToMain('/main')
@@ -781,6 +793,10 @@ export default function App() {
       case '/delivery-check':
         goToDeliveryCheck({ push: false, replace: true })
         break
+      case '/business':
+        goToBusinessIntro({ push: false, replace: true })
+        break
+
       default:
         goToMain('/main', { push: false, replace: true })
     }
@@ -979,6 +995,17 @@ export default function App() {
           currentUser={currentUser}
           onRequireLogin={goToLogin}
         />
+      ) : activePage === 'businessIntro' ? (
+        <BusinessIntroPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
+        />
+      
       ) : (
         <ExperienceLanding
           onLogin={goToLogin}

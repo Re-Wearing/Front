@@ -1,5 +1,5 @@
 export const mainNavLinks = [
-  { label: '사업소개', href: '#about' },
+  { label: '사업소개', href: '/business' },
   { label: '게시판', href: '#board' },
   { label: '마이페이지', href: '#mypage' },
   { label: 'FAQ', href: '#faq' }
