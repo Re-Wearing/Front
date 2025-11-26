@@ -17,6 +17,10 @@ import InquiryAnswerPage from './pages/InquiryAnswerPage'
 import DonationStatusPage from './pages/DonationStatusPage'
 import OrganizationDonationStatusPage from './pages/OrganizationDonationStatusPage'
 import CategoryMenu from './components/CategoryMenu'
+import DeliveryCheckPage from './pages/DeliveryCheckPage'
+import "./styles/delivery-check.css";
+
+
 import './styles/common.css'
 import './styles/intro.css'
 import './styles/signup.css'
@@ -296,6 +300,14 @@ export default function App() {
     if (push) updatePath('/donation-status', { replace })
     else if (replace) updatePath('/donation-status', { replace: true })
   }
+  const goToDeliveryCheck = (options = {}) => {
+    const { push = true, replace = false } = options
+    setShowLanding(false)
+    setActivePage('deliveryCheck')
+    if (push) updatePath('/delivery-check', { replace })
+    else if (replace) updatePath('/delivery-check', { replace: true })
+  }
+  
 
   const goToOrganizationDonationStatus = (options = {}) => {
     const { push = true, replace = false } = options
@@ -381,9 +393,10 @@ export default function App() {
     if (push) updatePath('/verification', { replace })
     else if (replace) updatePath('/verification', { replace: true })
   }
-const formatIsoDate = date => date.toISOString().split('T')[0]
 
-const handleLoginSubmit = (username, password) => {
+  const formatIsoDate = date => date.toISOString().split('T')[0]
+
+  const handleLoginSubmit = (username, password) => {
   const trimmedId = username.trim()
   const trimmedPw = password.trim()
   const account = accounts[trimmedId]
@@ -396,9 +409,9 @@ const handleLoginSubmit = (username, password) => {
     return { success: true, role: account.role }
   }
   return { success: false }
-}
+  }
 
-const handleInquirySubmit = ({ title, message }) => {
+  const handleInquirySubmit = ({ title, message }) => {
   if (!currentUser) {
     return { success: false, message: '로그인이 필요합니다.' }
   }
@@ -441,9 +454,9 @@ const handleInquirySubmit = ({ title, message }) => {
     return { ...prev, admin: [notification, ...adminList] }
   })
   return { success: true }
-}
+  }
 
-const handleAnswerSubmit = (inquiryId, answerText) => {
+  const handleAnswerSubmit = (inquiryId, answerText) => {
   const trimmed = answerText?.trim()
   if (!trimmed) return
   const target = adminInquiries.find(entry => entry.id === inquiryId)
@@ -477,17 +490,17 @@ const handleAnswerSubmit = (inquiryId, answerText) => {
       [target.requester]: [notification, ...(prev[target.requester] || [])]
     }))
   }
-}
+  }
 
-const handleLogout = () => {
+  const handleLogout = () => {
   setCurrentUser(null)
   if (typeof window !== 'undefined') {
     window.sessionStorage.removeItem('rewearUser')
   }
   goToMain()
-}
+  }
 
-const handleForgotPasswordSubmit = ({ username, email }) => {
+  const handleForgotPasswordSubmit = ({ username, email }) => {
   const account = accounts[username.trim()]
   if (!account || account.email !== email.trim()) {
     return { success: false, message: '일치하는 계정을 찾을 수 없습니다.' }
@@ -499,9 +512,9 @@ const handleForgotPasswordSubmit = ({ username, email }) => {
   })
   goToVerification()
   return { success: true }
-}
+  }
 
-const handleForgotIdSubmit = ({ name, email }) => {
+  const handleForgotIdSubmit = ({ name, email }) => {
   const entry = Object.entries(accounts).find(
     ([, data]) => data.name === name.trim() && data.email === email.trim()
   )
@@ -516,11 +529,11 @@ const handleForgotIdSubmit = ({ name, email }) => {
   })
   goToVerification()
   return { success: true }
-}
+  }
 
-const clearRecoveryContext = () => {
-  setRecoveryContext(null)
-}
+  const clearRecoveryContext = () => {
+    setRecoveryContext(null)
+  }
 
   const handleProfileSave = updates => {
     if (!currentUser) {
@@ -698,6 +711,9 @@ const clearRecoveryContext = () => {
       goToFaq()
     } else if (href === '/inquiry' || href === '#inquiry') {
       goToInquiry()
+    } else if (href === '/delivery-check' || href === '#delivery-check') {
+      goToDeliveryCheck()
+  
     } else if (href === '#donation') {
       // 기부하기 페이지가 없으므로 메인으로 이동
       goToMain('/main')
@@ -761,6 +777,9 @@ const clearRecoveryContext = () => {
         break
       case '/organization/donation-status':
         goToOrganizationDonationStatus({ push: false, replace: true })
+        break
+      case '/delivery-check':
+        goToDeliveryCheck({ push: false, replace: true })
         break
       default:
         goToMain('/main', { push: false, replace: true })
@@ -937,6 +956,16 @@ const clearRecoveryContext = () => {
           onMenu={() => setIsMenuOpen(true)}
           currentUser={currentUser}
           onRequireLogin={goToLogin}
+        />
+      ) : activePage === 'deliveryCheck' ? (
+        <DeliveryCheckPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
         />
       ) : activePage === 'organizationDonationStatus' ? (
         <OrganizationDonationStatusPage
