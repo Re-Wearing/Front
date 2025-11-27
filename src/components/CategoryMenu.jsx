@@ -5,7 +5,7 @@ export default function CategoryMenu({ isOpen, onClose, onNavClick }) {
     {
       title: '기부하기',
       items: [
-        { label: '기부하기', href: '#donation' },
+        { label: '기부하기', href: '/donation', action: 'DonationPage' },
         { label: '게시판', href: '#board' }
       ]
     },

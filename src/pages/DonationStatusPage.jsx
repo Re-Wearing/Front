@@ -15,7 +15,8 @@ export default function DonationStatusPage({
   unreadCount,
   onMenu = () => {},
   currentUser,
-  onRequireLogin
+  onRequireLogin,
+  donations = []
 }) {
   // 로그인하지 않았거나, 기관 회원이거나, 관리자인 경우 접근 불가
   if (!isLoggedIn || !currentUser) {
@@ -31,7 +32,7 @@ export default function DonationStatusPage({
     }
     return null
   }
-  const [donations] = useState(INITIAL_DONATIONS)
+  // donations는 props로 받아옴
   const [selectedItems, setSelectedItems] = useState(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
