@@ -1,30 +1,35 @@
-export default function CategoryMenu({ isOpen, onClose, onNavClick }) {
+const getMenuCategories = role => [
+  {
+    title: '기부하기',
+    items: [
+      { label: '기부하기', href: '#donation' },
+      { label: '게시판', href: '#board' }
+    ]
+  },
+  {
+    title: '마이페이지',
+    items: [
+      { label: '마이페이지', href: '#mypage' },
+      { label: '기부 현황 조회', href: '/donation-status' },
+      { label: '배송 조회', href: '#delivery-check' }
+    ]
+  },
+  {
+    title: 'FAQ',
+    items:
+      role === '관리자 회원'
+        ? [{ label: 'FAQ 관리', href: '/admin/faq' }]
+        : [
+            { label: 'FAQ', href: '/faq', action: 'FaqPage' },
+            { label: '문의하기', href: '/inquiry', action: 'InquiryPage' }
+          ]
+  }
+]
+
+export default function CategoryMenu({ isOpen, onClose, onNavClick, role }) {
   if (!isOpen) return null
 
-  const menuCategories = [
-    {
-      title: '기부하기',
-      items: [
-        { label: '기부하기', href: '#donation' },
-        { label: '게시판', href: '#board' }
-      ]
-    },
-    {
-      title: '마이페이지',
-      items: [
-        { label: '마이페이지', href: '#mypage' },
-        { label: '기부 현황 조회', href: '/donation-status', action: 'donation-status' },
-        { label: '배송 조회', href: '#delivery-check' }
-      ]
-    },
-      {
-        title: 'FAQ',
-        items: [
-          { label: 'FAQ', href: '/faq', action: 'FaqPage' },
-          { label: '문의하기', href: '/inquiry', action: 'InquiryPage' }
-        ]
-      }
-  ]
+  const menuCategories = getMenuCategories(role)
 
   const handleNavClick = (event, item) => {
     event.preventDefault()

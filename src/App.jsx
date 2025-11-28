@@ -46,37 +46,96 @@ const INITIAL_ACCOUNTS = {
   user: {
     password: 'user',
     role: '일반 회원',
-    name: '홍길동',
+    name: '권석현',
     email: 'user@rewear.com'
   },
   organ: {
     password: 'organ',
     role: '기관 회원',
-    name: '오가닉재단',
+    name: '임당초등학교',
     email: 'organ@rewear.com'
+  },
+  organ1: {
+    password: 'organ1',
+    role: '기관 회원',
+    name: '임당중학교',
+    email: 'organ1@rewear.com'
   }
 }
 
 const INITIAL_PROFILES = {
   admin: {
+    fullName: '리웨어 관리자',
     nickname: 'RE:WEAR 관리자',
     phone: '010-0000-0000',
     address: '서울시 중구 한강대로 416',
-    allowEmail: true
+    allowEmail: true,
+    useAnonymousName: false
   },
   user: {
-    nickname: '사용자 닉네임',
+    fullName: '권석현',
+    nickname: '일반회원',
     phone: '010-1234-5678',
     address: '서울시 강남구 테헤란로 231',
-    allowEmail: true
+    allowEmail: true,
+    useAnonymousName: false
   },
   organ: {
-    nickname: '오가닉 재단',
+    fullName: '임당초등학교',
+    nickname: '임당초등학교',
     phone: '02-9876-5432',
     address: '부산시 해운대구 바닷가로 12',
-    allowEmail: false
+    allowEmail: false,
+    useAnonymousName: false
+  },
+  organ1: {
+    fullName: '임당중학교',
+    nickname: '임당중학교',
+    phone: '031-555-7890',
+    address: '경기도 성남시 판교로 123',
+    allowEmail: true,
+    useAnonymousName: false
   }
 }
+
+const INITIAL_SHIPMENTS = [
+  {
+    id: '20240917-01',
+    product: '양털후리스 외 2개',
+    startDate: '2024/09/17',
+    receiver: '임당초등학교',
+    status: '배송완료',
+    sender: '권석현',
+    link: 'https://tracker.delivery/'
+  },
+  {
+    id: '20240917-02',
+    product: '원피스 외 3개',
+    startDate: '2024/09/17',
+    receiver: '임당초등학교',
+    status: '배송중',
+    sender: '권석현',
+    link: 'https://tracker.delivery/'
+  },
+  {
+    id: '20240917-03',
+    product: '바지 외 5개',
+    startDate: '2024/09/17',
+    receiver: '임당초등학교',
+    status: '배송대기',
+    sender: '권석현',
+    link: 'https://tracker.delivery/'
+  },
+  {
+    id: '20240917-04',
+    product: '운동화 세트',
+    startDate: '2024/09/18',
+    receiver: '임당중학교',
+    status: '배송완료',
+    sender: '권석현',
+    link: 'https://tracker.delivery/'
+  }
+]
 
 const INITIAL_NOTIFICATIONS = {
   admin: [
@@ -126,6 +185,15 @@ const INITIAL_NOTIFICATIONS = {
       date: '2025-01-15',
       read: true
     }
+  ],
+  organ1: [
+    {
+      id: 'organ1-1',
+      title: '새로운 기부가 도착했어요',
+      type: 'info',
+      date: '2025-03-05',
+      read: false
+    }
   ]
 }
 
@@ -163,9 +231,23 @@ export default function App() {
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS)
   const [accounts, setAccounts] = useState(INITIAL_ACCOUNTS)
   const [profiles, setProfiles] = useState(INITIAL_PROFILES)
+  const [shipments] = useState(() => {
+    if (typeof window === 'undefined') return INITIAL_SHIPMENTS
+    const stored = window.sessionStorage.getItem('rewearShipments')
+    if (stored) {
+      try {
+        return JSON.parse(stored)
+      } catch (error) {
+        console.error('Failed to parse stored shipments', error)
+      }
+    }
+    window.sessionStorage.setItem('rewearShipments', JSON.stringify(INITIAL_SHIPMENTS))
+    return INITIAL_SHIPMENTS
+  })
   const currentUserRef = useRef(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [adminInquiries, setAdminInquiries] = useState(ADMIN_FAQ_SEED)
+  const [isBootstrapped, setIsBootstrapped] = useState(() => typeof window === 'undefined')
   const updatePath = (path, { replace = false } = {}) => {
     setCurrentPath(path)
     if (typeof window === 'undefined' || !window.history) return
@@ -188,7 +270,10 @@ export default function App() {
   }, [currentUser])
 
   useEffect(() => {
-    if (typeof window === 'undefined') return undefined
+    if (typeof window === 'undefined') {
+      setIsBootstrapped(true)
+      return undefined
+    }
     const storedUser = window.sessionStorage.getItem('rewearUser')
     let matched = null
     if (storedUser && INITIAL_ACCOUNTS[storedUser]) {
@@ -205,6 +290,7 @@ export default function App() {
       navigateByPath(path, { userOverride: currentUserRef.current })
     }
     window.addEventListener('popstate', handlePopState)
+    setIsBootstrapped(true)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
@@ -288,18 +374,19 @@ export default function App() {
     else if (replace) updatePath('/faq/answers', { replace: true })
   }
 
-  const goToDonationStatus = (options = {}) => {
+  const goToDonationStatus = (options = {}, userOverride) => {
     const { push = true, replace = false } = options
-    if (!currentUser) {
+    const targetUser = userOverride || currentUser
+    if (!targetUser) {
       goToLogin(options)
       return
     }
-    if (currentUser.role === '기관 회원' || currentUser.role === '관리자 회원') {
+    if (targetUser.role === '관리자 회원') {
       goToMain('/main', options)
       return
     }
     setShowLanding(false)
-    setActivePage('donationStatus')
+    setActivePage(targetUser.role === '기관 회원' ? 'organizationDonationStatus' : 'donationStatus')
     if (push) updatePath('/donation-status', { replace })
     else if (replace) updatePath('/donation-status', { replace: true })
   }
@@ -319,22 +406,6 @@ export default function App() {
   };
   
   
-
-  const goToOrganizationDonationStatus = (options = {}) => {
-    const { push = true, replace = false } = options
-    if (!currentUser) {
-      goToLogin(options)
-      return
-    }
-    if (currentUser.role !== '기관 회원') {
-      goToMain('/main', options)
-      return
-    }
-    setShowLanding(false)
-    setActivePage('organizationDonationStatus')
-    if (push) updatePath('/organization/donation-status', { replace })
-    else if (replace) updatePath('/organization/donation-status', { replace: true })
-  }
 
   const goToMyPage = (options = {}, userOverride) => {
     const { push = true, replace = false } = options
@@ -408,18 +479,18 @@ export default function App() {
   const formatIsoDate = date => date.toISOString().split('T')[0]
 
   const handleLoginSubmit = (username, password) => {
-  const trimmedId = username.trim()
-  const trimmedPw = password.trim()
-  const account = accounts[trimmedId]
-  if (account && account.password === trimmedPw) {
-    const current = { username: trimmedId, ...account }
-    setCurrentUser(current)
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.setItem('rewearUser', trimmedId)
+    const normalizedId = username.trim().toLowerCase()
+    const trimmedPw = password.trim()
+    const account = accounts[normalizedId]
+    if (account && account.password === trimmedPw) {
+      const current = { username: normalizedId, ...account }
+      setCurrentUser(current)
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('rewearUser', normalizedId)
+      }
+      return { success: true, role: account.role }
     }
-    return { success: true, role: account.role }
-  }
-  return { success: false }
+    return { success: false }
   }
 
   const handleInquirySubmit = ({ title, message }) => {
@@ -555,10 +626,15 @@ export default function App() {
       ...prev,
       [username]: {
         ...prev[username],
+        fullName: updates.fullName?.trim() || prev[username]?.fullName || accounts[username]?.name,
         nickname: updates.nickname,
         phone: updates.phone,
         address: updates.address,
-        allowEmail: updates.allowEmail
+        allowEmail: updates.allowEmail,
+        useAnonymousName:
+          typeof updates.useAnonymousName === 'boolean'
+            ? updates.useAnonymousName
+            : prev[username]?.useAnonymousName
       }
     }))
     if (updates.email) {
@@ -714,7 +790,7 @@ export default function App() {
     if (href === '/donation-status' || href === '#donation-status') {
       // 기관 회원이면 기관용 페이지로, 일반 회원이면 일반용 페이지로
       if (currentUser?.role === '기관 회원') {
-        goToOrganizationDonationStatus()
+        goToDonationStatus(undefined, currentUser)
       } else {
         goToDonationStatus()
       }
@@ -723,7 +799,11 @@ export default function App() {
     } else if (href === '/business' || href === '#about') {
       goToBusinessIntro()
     } else if (href === '/inquiry' || href === '#inquiry') {
-      goToInquiry()
+      if (currentUser?.role === '관리자 회원') {
+        goToAdminFaq()
+      } else {
+        goToInquiry()
+      }
     } else if (href === '/delivery-check' || href === '#delivery-check') {
       goToDeliveryCheck()
     } else if (href === '#donation') {
@@ -785,10 +865,7 @@ export default function App() {
         goToVerification({ push: false, replace: true })
         break
       case '/donation-status':
-        goToDonationStatus({ push: false, replace: true })
-        break
-      case '/organization/donation-status':
-        goToOrganizationDonationStatus({ push: false, replace: true })
+        goToDonationStatus({ push: false, replace: true }, userOverride)
         break
       case '/delivery-check':
         goToDeliveryCheck({ push: false, replace: true })
@@ -812,12 +889,17 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [currentUser])
 
+  if (!isBootstrapped) {
+    return null
+  }
+
   return (
     <div className="app-root">
       <CategoryMenu
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
         onNavClick={handleNavRedirection}
+        role={currentUser?.role}
       />
       {showLanding ? (
         <IntroLanding onClose={goToMain} onLogin={goToLogin} onSignup={goToSignup} />
@@ -972,6 +1054,7 @@ export default function App() {
           onMenu={() => setIsMenuOpen(true)}
           currentUser={currentUser}
           onRequireLogin={goToLogin}
+          shipments={shipments}
         />
       ) : activePage === 'deliveryCheck' ? (
         <DeliveryCheckPage
@@ -982,6 +1065,11 @@ export default function App() {
           onNotifications={goToNotifications}
           unreadCount={unreadCount}
           onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
+          currentProfile={currentProfile}
+          shipments={shipments}
+          donorProfile={profiles.user}
+          organizationProfile={currentUser ? profiles[currentUser.username] : null}
         />
       ) : activePage === 'organizationDonationStatus' ? (
         <OrganizationDonationStatusPage
@@ -994,10 +1082,13 @@ export default function App() {
           onMenu={() => setIsMenuOpen(true)}
           currentUser={currentUser}
           onRequireLogin={goToLogin}
+          isBootstrapped={isBootstrapped}
+          shipments={shipments}
         />
       ) : activePage === 'businessIntro' ? (
         <BusinessIntroPage
           onNavigateHome={goToMain}
+          onLogin={goToLogin}
           onNavLink={handleNavRedirection}
           isLoggedIn={isLoggedIn}
           onLogout={handleLogout}

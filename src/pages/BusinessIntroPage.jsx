@@ -5,6 +5,7 @@ import "../styles/business-intro.css"
 export default function BusinessIntroPage({
   onNavigateHome,
   onNavLink,
+  onLogin = () => {},
   isLoggedIn,
   onLogout,
   onNotifications,
@@ -19,6 +20,7 @@ export default function BusinessIntroPage({
           navLinks={mainNavLinks}
           onLogoClick={onNavigateHome}
           onNavClick={onNavLink}
+          onLogin={onLogin}
           isLoggedIn={isLoggedIn}
           onLogout={onLogout}
           onNotifications={onNotifications}
@@ -82,7 +84,7 @@ export default function BusinessIntroPage({
           <ul className="process-list">
             <li>
               <h4>간편한 기부 신청</h4>
-              <p>누구나 쉽게 기부 신청을 할 수 있도록 직관적인 서비스스 제공</p>
+              <p>누구나 쉽게 기부 신청을 할 수 있도록 직관적인 서비스 제공</p>
             </li>
             <li>
               <h4>맞춤형 매칭</h4>
@@ -90,7 +92,7 @@ export default function BusinessIntroPage({
             </li>
             <li>
               <h4>투명한 배송 조회</h4>
-              <p>기부 물품의 이동 과정을 실시간으로 확인 가능능</p>
+              <p>기부 물품의 이동 과정을 실시간으로 확인 가능</p>
             </li>
             <li>
               <h4>기관 요청 반영</h4>
