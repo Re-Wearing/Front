@@ -993,6 +993,7 @@ export default function App() {
           accounts={accounts}
           profiles={profiles}
           notifications={notifications}
+          shipments={shipments}
           onResetPassword={handleAdminPasswordReset}
           onDeleteUser={handleAdminDeleteUser}
           onNavigateHome={goToMain}
