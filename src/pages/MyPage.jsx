@@ -26,10 +26,14 @@ export default function MyPage({
   const [withdrawInput, setWithdrawInput] = useState('')
   const [withdrawMessage, setWithdrawMessage] = useState('')
 
+  const isOrganization = Boolean(user?.role === '기관 회원')
+
   const syncForm = () => {
     if (profile && user) {
+      const fallbackNickname = profile.nickname || user.name
+      const forcedNickname = isOrganization ? profile.fullName || user.name : fallbackNickname
       setForm({
-        nickname: profile.nickname || user.name,
+        nickname: forcedNickname,
         phone: profile.phone || '',
         address: profile.address || '',
         allowEmail: Boolean(profile.allowEmail),
@@ -55,8 +59,9 @@ export default function MyPage({
     )
   }
 
-  const nickname = form.nickname || user.name
-  const withdrawToken = `${nickname}/탈퇴한다.`
+  const memberName = profile.fullName || user.name
+  const displayNickname = isOrganization ? memberName : profile.nickname || memberName
+  const withdrawToken = `${displayNickname}/탈퇴한다.`
 
   const handleProfileChange = event => {
     const { name, value, type, checked } = event.target
@@ -68,7 +73,8 @@ export default function MyPage({
 
   const handleProfileSubmit = event => {
     event.preventDefault()
-    const result = onSaveProfile(form)
+    const payload = isOrganization ? { ...form, nickname: memberName } : form
+    const result = onSaveProfile(payload)
     setProfileMessage(result.message || (result.success ? '저장되었습니다.' : '실패했습니다.'))
   }
 
@@ -103,8 +109,23 @@ export default function MyPage({
       <div className="mypage-layout">
         <aside className="mypage-profile-card">
           <div className="mypage-avatar">👤</div>
-          <strong className="mypage-name">{nickname}</strong>
+          <div className="mypage-identity">
+            <span className="mypage-role">{user.role}</span>
+            <strong className="mypage-realname">{memberName}</strong>
+            <p className="mypage-nickname">닉네임 {displayNickname}</p>
+          </div>
           <p className="mypage-email">{form.email}</p>
+
+          <ul className="mypage-meta">
+            <li>
+              <span>회원 아이디</span>
+              <strong>{user.username}</strong>
+            </li>
+            <li>
+              <span>회원 유형</span>
+              <strong>{user.role}</strong>
+            </li>
+          </ul>
 
           <div className="mypage-actions">
             <button type="button" className="outline">
@@ -131,11 +152,16 @@ export default function MyPage({
           <form className="mypage-form" onSubmit={handleProfileSubmit}>
             <h2>프로필 편집</h2>
             <label>
+              이름
+              <input value={memberName} readOnly />
+            </label>
+            <label>
               닉네임
               <input
                 name="nickname"
                 value={form.nickname}
                 onChange={handleProfileChange}
+                readOnly={isOrganization}
                 placeholder="닉네임 입력"
               />
             </label>
