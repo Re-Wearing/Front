@@ -21,6 +21,8 @@ import DeliveryCheckPage from './pages/DeliveryCheckPage'
 import "./styles/delivery-check.css";
 import BusinessIntroPage from './pages/BusinessIntroPage';
 import './styles/business-intro.css'
+import DonationPage from './pages/DonationPage'
+import './styles/donation.css'
 
 
 
@@ -166,6 +168,7 @@ export default function App() {
   const currentUserRef = useRef(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [adminInquiries, setAdminInquiries] = useState(ADMIN_FAQ_SEED)
+  const [donations, setDonations] = useState({}) // username별로 기부 내역 관리
   const updatePath = (path, { replace = false } = {}) => {
     setCurrentPath(path)
     if (typeof window === 'undefined' || !window.history) return
@@ -316,6 +319,14 @@ export default function App() {
     setActivePage('businessIntro');
     if (push) updatePath('/business', { replace });
     else if (replace) updatePath('/business', { replace: true });
+  };
+
+  const goToDonation = (options = {}) => {
+    const { push = true, replace = false } = options;
+    setShowLanding(false);
+    setActivePage('donation');
+    if (push) updatePath('/donation', { replace });
+    else if (replace) updatePath('/donation', { replace: true });
   };
   
   
@@ -685,6 +696,25 @@ export default function App() {
     })
   }
 
+  const handleAddDonation = (donationData) => {
+    if (!currentUser) return
+    const username = currentUser.username
+    const donationId = `donation-${Date.now()}`
+    const newDonation = {
+      id: donationId,
+      date: new Date().toISOString().split('T')[0],
+      items: `${donationData.itemType} - ${donationData.itemDetail || ''} (${donationData.itemSize}, ${donationData.itemCondition})`,
+      organization: donationData.donationMethod === '자동 매칭' 
+        ? '자동 매칭' 
+        : donationData.donationOrganization || '미선택',
+      status: '대기'
+    }
+    setDonations(prev => ({
+      ...prev,
+      [username]: [...(prev[username] || []), newDonation]
+    }))
+  }
+
   const handleNotificationNavigate = notification => {
     if (!notification?.target) return
     switch (notification.target) {
@@ -726,9 +756,8 @@ export default function App() {
       goToInquiry()
     } else if (href === '/delivery-check' || href === '#delivery-check') {
       goToDeliveryCheck()
-    } else if (href === '#donation') {
-      // 기부하기 페이지가 없으므로 메인으로 이동
-      goToMain('/main')
+    } else if (href === '/donation' || href === '#donation') {
+      goToDonation()
     } else if (href === '#board') {
       goToBoard()
     } else if (href === '#mypage') {
@@ -795,6 +824,9 @@ export default function App() {
         break
       case '/business':
         goToBusinessIntro({ push: false, replace: true })
+        break
+      case '/donation':
+        goToDonation({ push: false, replace: true })
         break
 
       default:
@@ -972,6 +1004,7 @@ export default function App() {
           onMenu={() => setIsMenuOpen(true)}
           currentUser={currentUser}
           onRequireLogin={goToLogin}
+          donations={currentUser ? (donations[currentUser.username] || []) : []}
         />
       ) : activePage === 'deliveryCheck' ? (
         <DeliveryCheckPage
@@ -1005,7 +1038,20 @@ export default function App() {
           unreadCount={unreadCount}
           onMenu={() => setIsMenuOpen(true)}
         />
-      
+      ) : activePage === 'donation' ? (
+        <DonationPage
+          onNavigateHome={goToMain}
+          onNavLink={handleNavRedirection}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
+          onRequireLogin={goToLogin}
+          onAddDonation={handleAddDonation}
+          onGoToDonationStatus={goToDonationStatus}
+        />
       ) : (
         <ExperienceLanding
           onLogin={goToLogin}
