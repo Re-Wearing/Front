@@ -253,6 +253,7 @@ export default function App() {
   const currentUserRef = useRef(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [adminInquiries, setAdminInquiries] = useState(ADMIN_FAQ_SEED)
+  const [isBootstrapped, setIsBootstrapped] = useState(() => typeof window === 'undefined')
   const [donations, setDonations] = useState({}) // username별로 기부 내역 관리
   const [boardPosts, setBoardPosts] = useState({ review: [], request: [] }) // 작성된 게시글 관리
   const [boardViews, setBoardViews] = useState({}) // 게시글 조회수 관리 { 'postId': views }
