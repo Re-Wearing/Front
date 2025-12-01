@@ -1,10 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
 import { mainNavLinks } from '../constants/landingData'
-
-const INITIAL_DONATIONS = [
-  
-]
 
 export default function OrganizationDonationStatusPage({
   onNavigateHome,
@@ -15,8 +11,14 @@ export default function OrganizationDonationStatusPage({
   unreadCount,
   onMenu = () => {},
   currentUser,
-  onRequireLogin
+  onRequireLogin,
+  isBootstrapped = true,
+  shipments = []
 }) {
+  if (!isBootstrapped) {
+    return null
+  }
+
   if (!isLoggedIn || !currentUser) {
     if (onRequireLogin) {
       onRequireLogin()
@@ -31,10 +33,45 @@ export default function OrganizationDonationStatusPage({
     return null
   }
 
-  const [donations] = useState(INITIAL_DONATIONS)
+  const normalizeStatus = status => String(status || '').replace(/\s+/g, '').toLowerCase()
+  const isCompleted = status => {
+    const normalized = normalizeStatus(status)
+    return normalized === '배송완료' || normalized === '완료' || normalized.endsWith('완료')
+  }
+
+  const donations = useMemo(
+    () =>
+      (shipments || [])
+        .filter(
+          shipment =>
+            (shipment.receiver === currentUser.name || shipment.receiver === currentUser.nickname) &&
+            isCompleted(shipment.status)
+        )
+        .map(shipment => ({
+          id: shipment.id,
+          date: shipment.startDate,
+          items: shipment.product,
+          organization: shipment.receiver,
+          sender: shipment.sender || '익명 기부자',
+          status: '완료'
+        })),
+    [shipments, currentUser.name, currentUser.nickname]
+  )
   const [selectedItems, setSelectedItems] = useState(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+
+  useEffect(() => {
+    setSelectedItems(prev => {
+      const next = new Set()
+      donations.forEach(donation => {
+        if (prev.has(donation.id)) {
+          next.add(donation.id)
+        }
+      })
+      return next
+    })
+  }, [donations])
 
   const handleSelectAll = event => {
     if (event.target.checked) {
@@ -102,6 +139,9 @@ export default function OrganizationDonationStatusPage({
                 </svg>
                 <input type="search" placeholder="검색..." />
               </div>
+              <button type="button" className="btn-cancel" onClick={onNavigateHome}>
+                Cancel
+              </button>
               <button type="button" className="btn-filter">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
@@ -139,9 +179,8 @@ export default function OrganizationDonationStatusPage({
                         기부 내용 ↓
                       </th>
                       <th>수혜 기관 ↓</th>
-                      <th>
-                        기부 진행 상태 ↓
-                      </th>
+                      <th>기부자</th>
+                      <th>기부 진행 상태 ↓</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -157,6 +196,7 @@ export default function OrganizationDonationStatusPage({
                         <td>{donation.date}</td>
                         <td>{donation.items}</td>
                         <td>{donation.organization}</td>
+                        <td>{donation.sender}</td>
                         <td>
                           <span
                             className="donation-status-badge"

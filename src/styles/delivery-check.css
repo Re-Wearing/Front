@@ -14,29 +14,6 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.08);
   }
   
-  /* --- 배송 단계 표시 박스 --- */
-  .delivery-step-box {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  /* 현재 단계에 색상이 들어갈 예정*/
-  .delivery-step-box .step {
-    flex: 1;
-    padding: 0.8rem 1rem;
-    text-align: center;
-    border-radius: 12px;
-    background: #f1e8d9;
-    color: #3a2f22;
-    font-weight: 600;
-  }
-  /* 실제로 강조될 때 적용되는 색상 */
-.delivery-step-box .step.active {
-    background: #e8dcc8;
-    color: #2f261c;
-    border: 1px solid #c8b59f;
-  }
-  
   /* --- 테이블 스타일 --- */
   .delivery-table {
     width: 100%;

@@ -1,10 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
 import { mainNavLinks } from '../constants/landingData'
-
-const INITIAL_DONATIONS = [
-
-]
 
 export default function DonationStatusPage({
   onNavigateHome,
@@ -16,7 +12,7 @@ export default function DonationStatusPage({
   onMenu = () => {},
   currentUser,
   onRequireLogin,
-  donations = []
+  shipments = []
 }) {
   // 로그인하지 않았거나, 기관 회원이거나, 관리자인 경우 접근 불가
   if (!isLoggedIn || !currentUser) {
@@ -32,8 +28,46 @@ export default function DonationStatusPage({
     }
     return null
   }
-  // donations는 props로 받아옴
+  const isCompletedShipment = status => {
+    if (!status) return false
+    const normalized = String(status).replace(/\s+/g, '').toLowerCase()
+    return normalized === '배송완료' || normalized === '완료' || normalized.endsWith('완료')
+  }
+
+  const donations = useMemo(
+    () => {
+      if (!currentUser) return []
+      return (shipments || [])
+        .filter(
+          shipment =>
+            isCompletedShipment(shipment.status) &&
+            (!shipment.sender ||
+              shipment.sender === currentUser.name ||
+              shipment.sender === currentUser.nickname)
+        )
+        .map(shipment => ({
+          id: shipment.id,
+          date: shipment.startDate,
+          items: shipment.product,
+          organization: shipment.receiver,
+          status: '완료'
+        }))
+    },
+    [shipments, currentUser]
+  )
   const [selectedItems, setSelectedItems] = useState(new Set())
+
+  useEffect(() => {
+    setSelectedItems(prev => {
+      const next = new Set()
+      donations.forEach(donation => {
+        if (prev.has(donation.id)) {
+          next.add(donation.id)
+        }
+      })
+      return next
+    })
+  }, [donations])
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 

@@ -1,10 +1,5 @@
 import HeaderLanding from '../components/HeaderLanding'
-import {
-  mainNavLinks,
-  experienceStats,
-  experienceValueCards,
-  experienceSteps
-} from '../constants/landingData'
+import { mainNavLinks } from '../constants/landingData'
 
 export default function ExperienceLanding({
   onLogin = () => {},
@@ -17,7 +12,7 @@ export default function ExperienceLanding({
   onMenu = () => {}
 }) {
   return (
-    <section className="main-page">
+    <section className="main-page experience-page soft-hero">
       <div className="main-shell">
         <HeaderLanding
           navLinks={mainNavLinks}
@@ -30,90 +25,114 @@ export default function ExperienceLanding({
           onMenu={onMenu}
         />
 
-        <section className="hero-section" id="hero">
-          <div className="hero-content">
-            <p className="eyebrow">지속가능 패션 커뮤니티</p>
-            <h2>RE:WEAR</h2>
-            <p className="hero-lead">
-              지속가능한 패션을 위한 중고 의류 거래 플랫폼, 리웨어에서 가치 있는 순환을
-              시작해보세요.
-            </p>
-            <p className="hero-sub">지금 시작해보세요!</p>
-            <div className="hero-stats">
-              {experienceStats.map(item => (
-                <div key={item.label} className="stat-card">
-                  <strong>{item.value}</strong>
-                  <span>{item.label}</span>
-                </div>
-              ))}
+        <section className="warm-hero">
+          <div className="hero-panel">
+            <div className="hero-illustration" aria-hidden="true">
+              <img
+                src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=1100&q=80"
+                alt="따뜻한 옷 나눔"
+              />
             </div>
-            {!isLoggedIn && (
-              <div className="hero-cta-row">
-                <button className="btn secondary" onClick={onLogin}>
-                  로그인
+            <div className="hero-info">
+              <p className="hero-eyebrow">지금 이 순간에도</p>
+              <h1>
+                RE:WEAR를 통해
+                <br />
+                따뜻한 옷이 전달되고 있어요.
+              </h1>
+              <ul className="impact-list">
+                <li>
+                  <span>👕</span>
+                  <div>
+                    <strong>000벌</strong>
+                    <p>지금까지 기부된 옷</p>
+                  </div>
+                </li>
+                <li>
+                  <span>🏫</span>
+                  <div>
+                    <strong>00곳</strong>
+                    <p>함께하는 기관</p>
+                  </div>
+                </li>
+                <li>
+                  <span>🧑‍🤝‍🧑</span>
+                  <div>
+                    <strong>00명</strong>
+                    <p>누적 참여자</p>
+                  </div>
+                </li>
+              </ul>
+              <div className="hero-cta">
+                <button className="hero-btn light" onClick={() => onNavLink?.({ href: '/donation-status' })}>
+                  나의 기부 현황 조회
                 </button>
-                <button className="btn secondary" onClick={onSignup}>
-                  회원가입
+                <button className="hero-btn dark" onClick={onSignup}>
+                  지금 바로 기부하기 📦
                 </button>
               </div>
-            )}
-          </div>
-          <div className="hero-visual" aria-hidden="true">
-            <div className="visual-photo" />
-            <div className="visual-note">
-              <span>RE:WEAR</span>
-              <p>오늘도 128벌의 옷이 새 삶을 시작했어요.</p>
             </div>
           </div>
         </section>
 
-        <section id="mission" className="mission-panel">
-          <div>
-            <p className="eyebrow">Why RE:WEAR</p>
-            <h3>지속 가능한 순환을 만드는 가장 쉬운 방법</h3>
-          </div>
-          <p>
-            리웨어는 기부자의 시간을 절약하고, 기관에는 필요한 물품을 정확히 전달합니다. 투명한
-            프로세스와 데이터 기반 매칭으로 패션 산업의 낭비를 줄이는 데 함께합니다.
-          </p>
-        </section>
-
-        <section id="value" className="value-grid">
-          {experienceValueCards.map(card => (
-            <article key={card.title}>
-              <p className="eyebrow">{card.title}</p>
-              <p>{card.body}</p>
-            </article>
-          ))}
-        </section>
-
-        <section id="process" className="process-section">
+        <section className="journey-section soft">
           <div className="section-header">
-            <p className="eyebrow">How it works</p>
-            <h3>단계별로 모두가 편리하게</h3>
+            <p className="eyebrow">Journey</p>
+            <h3>옷이 도착하기까지의 짧은 여정</h3>
           </div>
-          <ol className="process-list">
-            {experienceSteps.map(step => (
-              <li key={step.title}>
-                <h4>{step.title}</h4>
-                <p>{step.body}</p>
-              </li>
-            ))}
-          </ol>
+          <div className="journey-cards">
+            <article>
+              <span>01</span>
+              <h4>문 앞에서 수거</h4>
+              <p>앱에서 신청하면 가장 가까운 파트너가 직접 방문합니다.</p>
+            </article>
+            <article>
+              <span>02</span>
+              <h4>정성스러운 검수</h4>
+              <p>세탁과 분류를 거쳐 꼭 필요한 상태로 다시 준비됩니다.</p>
+            </article>
+            <article>
+              <span>03</span>
+              <h4>기관 연결</h4>
+              <p>필요한 곳에 맞춰 자동 매칭되고 이동을 추적합니다.</p>
+            </article>
+          </div>
         </section>
 
-        <section className="cta-panel">
+        <section className="story-panel">
+          <div className="story-text">
+            <p className="hero-eyebrow">함께 바뀌는 일상</p>
+            <h2>“아이들이 받은 패딩을 입고 바로 운동장으로 나갔어요.”</h2>
+            <p>
+              RE:WEAR는 기부자가 떠나보낸 옷과 기관이 꼭 필요로 하는 물품을 더 빠르게 연결합니다.
+              기부자는 앱에서 진행 현황을 확인하고, 기관은 필요한 때 필요한 만큼만 받습니다.
+            </p>
+          </div>
+          <div className="story-visual" aria-hidden="true">
+            <img
+              src="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=900&q=80"
+              alt="감사 이야기"
+            />
+          </div>
+        </section>
+
+        <section className="cta-split cozy">
           <div>
             <p className="eyebrow">지금 바로</p>
-            <h3>RE:WEAR와 함께 순환 패션 여정을 시작하세요</h3>
+            <h3>함께하면, 옷의 다음 주인이 조금 더 빨리 웃습니다.</h3>
           </div>
-          <button className="btn primary" onClick={onSignup}>
-            무료 컨설팅 신청
-          </button>
+          <div className="cta-actions">
+            <button className="btn primary" onClick={onSignup}>
+              기부 이야기 시작하기
+            </button>
+            <button className="btn secondary" onClick={() => onNavLink?.({ href: '/donation-status' })}>
+              내 기록 살펴보기
+            </button>
+          </div>
         </section>
 
         <footer className="landing-footer">
-          <p>© {new Date().getFullYear()} RE:WEAR. Sustainable fashion for everyone.</p>
+          <p>© {new Date().getFullYear()} RE:WEAR · 따뜻함이 이어지는 곳</p>
         </footer>
       </div>
     </section>

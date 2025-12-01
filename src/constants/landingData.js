@@ -5,43 +5,99 @@ export const mainNavLinks = [
   { label: 'FAQ', href: '#faq' }
 ]
 
+export const getNavLinksForRole = role => {
+  if (role === '관리자 회원') {
+    return [
+      { label: '사업소개', href: '/business' },
+      { label: '게시판', href: '#board' },
+      { label: '관리자 페이지', href: '/admin/manage' },
+      { label: 'FAQ 관리', href: '/admin/faq' }
+    ]
+  }
+  if (role === '기관 회원') {
+    return [
+      { label: '사업소개', href: '/business' },
+      { label: '게시판', href: '#board' },
+      { label: '배송 조회', href: '#delivery-check' },
+      { label: '기부 현황', href: '/donation-status' }
+    ]
+  }
+  return mainNavLinks
+}
+
 export const experienceStats = [
-  { value: '3,200+', label: '다시 입혀진 의류' },
-  { value: '187곳', label: '참여 기관' },
-  { value: '92%', label: '이용자 만족도' }
+  { value: '48,200벌', label: '연간 순환 의류' },
+  { value: '72시간', label: '평균 회수 리드타임' },
+  { value: '99%', label: '배송 추적율' }
 ]
 
-export const experienceValueCards = [
+export const liveUpdates = [
+  { time: '09:41', message: '성수동 수거 요청 배차 완료' },
+  { time: '10:05', message: '관악 검수허브 입고' },
+  { time: '10:47', message: '강서구 기관 배송 픽업' },
+  { time: '11:20', message: '탄소 절감 리포트 2건 발행' }
+]
+
+export const controlTowerModules = [
   {
-    title: '몰라요 몰라라',
-    body: '우리는 어쩌구 저쩌구 잘했습니다.'
+    tag: 'Pickup OS',
+    title: '수거 오더 자동화',
+    body: '지역/시간대/차량 용량을 고려해 최적 드라이버에게 자동 배차합니다.'
   },
   {
-    title: '알룰로스 알룰로스',
-    body: '우리는 어쩌구 저쩌구 잘했습니다.'
+    tag: 'Inventory Lens',
+    title: '품목 인텔리전스',
+    body: '사이즈와 시즌 데이터를 축적해 겹치는 물품을 미리 조정합니다.'
   },
   {
-    title: '어쩌구 저쩌구 리포트트',
-    body: '기부로 인해 어쩌구 됐습니다다.'
+    tag: 'Impact Feed',
+    title: '실시간 리포트',
+    body: '배송 · 검수 · 감사 피드백을 하나의 타임라인으로 기록합니다.'
+  },
+  {
+    tag: 'Partner API',
+    title: '기관 연동',
+    body: '파트너 기관 ERP와 연동해 수요 요청을 자동으로 가져옵니다.'
   }
 ]
 
-export const experienceSteps = [
+export const journeyTimeline = [
   {
-    title: '01. 물품 등록',
-    body: '사진과 간단한 컨디션만 입력하면 2분 만에 등록이 끝나요.'
+    step: '01',
+    title: '요청 접수 · 예약',
+    body: '문 앞 사진과 희망 일정을 입력하면 즉시 수거 슬롯을 확보합니다.',
+    detail: 'AI 라우팅으로 도심/지방 전 지역 대응'
   },
   {
-    title: '02. 검수 · 포장',
-    body: '전문 파트너가 세탁 · 검수를 진행해 품질을 보장합니다.'
+    step: '02',
+    title: '검수 · 등급화',
+    body: '소재/컨디션 기반으로 등급을 나누고, 세탁 완료품만 다음 단계로 이동.',
+    detail: '센터별 품목 현황을 대시보드에서 확인'
   },
   {
-    title: '03. 기관 매칭',
-    body: '선택하지 않아도 필요로 하는 기관과 자동 매칭되어 적시에 전달됩니다.'
+    step: '03',
+    title: '기관 매칭',
+    body: '수요 데이터(사이즈/성별/긴급도)를 맞춰 자동 배정 및 중복 방지.',
+    detail: '기관 승인 후 즉시 배송지 생성'
   },
   {
-    title: '04. 성과 리포트',
-    body: '나눔 영향을 게시판을 통해 나눌 수 있습니다다.'
+    step: '04',
+    title: '영향 공유',
+    body: '사진, 감사 메시지, 절감 탄소량을 기부자에게 실시간으로 전달.',
+    detail: '모든 내역은 PDF 리포트로 다운로드'
+  }
+]
+
+export const partnerQuotes = [
+  {
+    quote: '“수거 예약부터 리포트까지 한 화면에서 보여서 운영팀이 매일 쓰는 툴이 됐어요.”',
+    author: '한마음복지관 운영팀',
+    role: '서울 · 기관 회원'
+  },
+  {
+    quote: '“필요한 사이즈만 받으니 창고가 비었어요. 요청-배정 과정이 덜 번거롭습니다.”',
+    author: '희망드림센터',
+    role: '부산 · 아동 기관'
   }
 ]
 
@@ -111,7 +167,7 @@ export const membershipForms = {
     { id: 'phone', label: '전화번호', type: 'tel', placeholder: '010-0000-0000' },
     {
       id: 'nicknameInfo',
-      label: '닉네임(기관명과 동일하게 설정됩니다.)',
+      label: '닉네임',
       type: 'text',
       placeholder: '기관명과 동일하게 표시됩니다',
       readOnly: true,
