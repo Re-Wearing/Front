@@ -3,6 +3,8 @@ import IntroLanding from './pages/IntroLanding'
 import SignupPage from './pages/SignupPage'
 import LoginPage from './pages/LoginPage'
 import BoardPage from './pages/BoardPage'
+import BoardWritePage from './pages/BoardWritePage'
+import BoardDetailPage from './pages/BoardDetailPage'
 import ExperienceLanding from './pages/ExperienceLanding'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ForgotIdPage from './pages/ForgotIdPage'
@@ -23,6 +25,8 @@ import BusinessIntroPage from './pages/BusinessIntroPage';
 import './styles/business-intro.css'
 import DonationPage from './pages/DonationPage'
 import './styles/donation.css'
+import './styles/board-write.css'
+import './styles/board-detail.css'
 
 
 
@@ -169,6 +173,12 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [adminInquiries, setAdminInquiries] = useState(ADMIN_FAQ_SEED)
   const [donations, setDonations] = useState({}) // username별로 기부 내역 관리
+  const [boardPosts, setBoardPosts] = useState({ review: [], request: [] }) // 작성된 게시글 관리
+  const [boardViews, setBoardViews] = useState({}) // 게시글 조회수 관리 { 'postId': views }
+  const [boardWriteType, setBoardWriteType] = useState('review')
+  const [selectedBoardType, setSelectedBoardType] = useState('all')
+  const [selectedPostId, setSelectedPostId] = useState(null)
+  const [selectedPostType, setSelectedPostType] = useState('review')
   const updatePath = (path, { replace = false } = {}) => {
     setCurrentPath(path)
     if (typeof window === 'undefined' || !window.history) return
@@ -253,6 +263,89 @@ export default function App() {
     setActivePage('board')
     if (push) updatePath('/board', { replace })
     else if (replace) updatePath('/board', { replace: true })
+  }
+
+  const goToBoardWrite = (options = {}, boardType = 'review') => {
+    const { push = true, replace = false } = options
+    if (!currentUser) {
+      goToLogin(options)
+      return
+    }
+    // 사용자 역할에 따라 게시판 타입 제한
+    const userRole = currentUser?.role || ''
+    const isOrganization = userRole === '기관 회원' || userRole === '관리자 회원'
+    const allowedBoardType = isOrganization ? 'request' : 'review'
+    setBoardWriteType(allowedBoardType)
+    setShowLanding(false)
+    setActivePage('boardWrite')
+    if (push) updatePath('/board/write', { replace })
+    else if (replace) updatePath('/board/write', { replace: true })
+  }
+
+  const handleBoardPostSubmit = (postData) => {
+    const newPost = {
+      id: Date.now(),
+      title: postData.title,
+      content: postData.content,
+      writer: currentUser?.username || postData.writer,
+      views: 0,
+      date: new Date().toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).replace(/\./g, '.').replace(/\s/g, '')
+    }
+    
+    setBoardPosts(prev => ({
+      ...prev,
+      [postData.boardType]: [newPost, ...(prev[postData.boardType] || [])]
+    }))
+    
+    return { success: true }
+  }
+
+  const goToBoardDetail = (postId, postType = 'review', options = {}) => {
+    const { push = true, replace = false } = options
+    setSelectedPostId(postId)
+    setSelectedPostType(postType)
+    setShowLanding(false)
+    setActivePage('boardDetail')
+    // 공지사항은 문자열 ID이므로 그대로 사용
+    const encodedPostId = typeof postId === 'string' ? encodeURIComponent(postId) : postId
+    if (push) updatePath(`/board/${encodedPostId}`, { replace })
+    else if (replace) updatePath(`/board/${encodedPostId}`, { replace: true })
+  }
+
+  const handleBoardViewsUpdate = (postId, postType) => {
+    // 조회수 증가 (상태 관리) - 한 번만 증가
+    setBoardViews(prev => {
+      // 이미 조회수가 증가했는지 확인 (0보다 크면 이미 증가함)
+      if (prev[postId] && prev[postId] > 0) {
+        return prev // 이미 증가했으면 그대로 반환
+      }
+      // 처음 방문하면 +1
+      return {
+        ...prev,
+        [postId]: 1
+      }
+    })
+  }
+
+  const handleBoardPostDelete = (postId, postType) => {
+    // 작성된 게시글에서만 삭제 가능 (상수 데이터는 삭제 불가)
+    setBoardPosts(prev => ({
+      ...prev,
+      [postType]: (prev[postType] || []).filter(post => Number(post.id) !== Number(postId))
+    }))
+    
+    // 조회수 데이터도 삭제
+    setBoardViews(prev => {
+      const updated = { ...prev }
+      delete updated[postId]
+      return updated
+    })
+    
+    return true
   }
 
   const goToFaq = (options = {}) => {
@@ -769,6 +862,33 @@ export default function App() {
   }
 
   const navigateByPath = (path, { userOverride } = {}) => {
+    // 동적 라우팅: /board/:id 형태 처리
+    if (path.startsWith('/board/')) {
+      const pathPart = path.split('/board/')[1]
+      if (pathPart && path !== '/board/write') {
+        // 공지사항인지 확인 (notice-로 시작하는 경우)
+        let postId = pathPart
+        let postType = 'review'
+        
+        if (pathPart.startsWith('notice-')) {
+          postId = decodeURIComponent(pathPart)
+          postType = 'notice'
+        } else {
+          const parsedId = parseInt(pathPart)
+          if (parsedId) {
+            postId = parsedId
+            // 게시글 타입은 기본값으로 설정 (나중에 개선 가능)
+          } else {
+            // 숫자로 변환할 수 없으면 문자열 그대로 사용
+            postId = decodeURIComponent(pathPart)
+          }
+        }
+        
+        goToBoardDetail(postId, postType, { push: false, replace: true })
+        return
+      }
+    }
+
     switch (path) {
       case '/':
       case '/main':
@@ -782,6 +902,9 @@ export default function App() {
         break
       case '/board':
         goToBoard({ push: false, replace: true })
+        break
+      case '/board/write':
+        goToBoardWrite({ push: false, replace: true })
         break
       case '/faq':
         goToFaq({ push: false, replace: true })
@@ -828,7 +951,6 @@ export default function App() {
       case '/donation':
         goToDonation({ push: false, replace: true })
         break
-
       default:
         goToMain('/main', { push: false, replace: true })
     }
@@ -888,6 +1010,46 @@ export default function App() {
           onNotifications={goToNotifications}
           unreadCount={unreadCount}
           onMenu={() => setIsMenuOpen(true)}
+          onGoToBoardWrite={goToBoardWrite}
+          currentUser={currentUser}
+          selectedBoardType={selectedBoardType}
+          boardPosts={boardPosts}
+          boardViews={boardViews}
+          onGoToBoardDetail={goToBoardDetail}
+        />
+      ) : activePage === 'boardDetail' ? (
+        <BoardDetailPage
+          onNavigateHome={goToMain}
+          onLogin={goToLogin}
+          onNavLink={handleNavRedirection}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
+          postId={selectedPostId}
+          postType={selectedPostType}
+          onGoBack={() => goToBoard({ push: false, replace: true })}
+          boardPosts={boardPosts}
+          boardViews={boardViews}
+          onUpdateViews={handleBoardViewsUpdate}
+          onDeletePost={handleBoardPostDelete}
+        />
+      ) : activePage === 'boardWrite' ? (
+        <BoardWritePage
+          onNavigateHome={goToMain}
+          onLogin={goToLogin}
+          onNavLink={handleNavRedirection}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+          onNotifications={goToNotifications}
+          unreadCount={unreadCount}
+          onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
+          onGoBack={() => goToBoard({ push: false, replace: true })}
+          boardType={boardWriteType || 'review'}
+          onSubmit={handleBoardPostSubmit}
         />
       ) : activePage === 'notification' ? (
         <NotificationPage
