@@ -110,7 +110,7 @@ export default function CategoryMenu({ isOpen, onClose, onNavClick, role }) {
       <div className="category-menu-overlay" onClick={onClose} />
       <div className="category-menu">
         <div className="category-menu-header">
-          <h3>카테고리</h3>
+          <h3>메뉴</h3>
           <button type="button" className="category-menu-close" onClick={onClose} aria-label="메뉴 닫기">
             ×
           </button>

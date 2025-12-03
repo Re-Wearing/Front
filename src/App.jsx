@@ -143,6 +143,73 @@ const INITIAL_SHIPMENTS = [
   }
 ]
 
+const INITIAL_DONATION_ITEMS = {
+  user: [
+    {
+      id: 'don-20250201-01',
+      referenceCode: 'REQ-20250201-01',
+      date: '2025-02-01',
+      registeredAt: '2025-02-01',
+      name: '겨울 패딩 세트',
+      category: '아우터',
+      items: '겨울 패딩 세트 (L, A급)',
+      organization: '자동 매칭',
+      status: '승인대기',
+      matchingInfo: '관리자 검토 중입니다.'
+    },
+    {
+      id: 'don-20250205-02',
+      referenceCode: 'REQ-20250205-02',
+      date: '2025-02-05',
+      registeredAt: '2025-02-05',
+      name: '아동 겨울 의류',
+      category: '아동 의류',
+      items: '아동 겨울 의류 5벌 (S, B급)',
+      organization: '자동 매칭',
+      status: '매칭대기',
+      matchingInfo: '기관 매칭을 기다리는 중입니다.'
+    },
+    {
+      id: 'don-20250210-03',
+      referenceCode: 'REQ-20250210-03',
+      date: '2025-02-10',
+      registeredAt: '2025-02-10',
+      name: '운동화 세트',
+      category: '신발',
+      items: '운동화 세트 (260mm, A급)',
+      organization: '임당초등학교',
+      status: '매칭됨',
+      matchingInfo: '임당초등학교와 매칭되었습니다.',
+      matchedOrganization: '임당초등학교'
+    },
+    {
+      id: 'don-20250212-04',
+      referenceCode: 'REQ-20250212-04',
+      date: '2025-02-12',
+      registeredAt: '2025-02-12',
+      name: '피트니스 용품',
+      category: '잡화',
+      items: '피트니스 용품 세트 (미사용)',
+      organization: '임당중학교',
+      status: '배송대기',
+      matchingInfo: '배송 준비 중입니다.',
+      matchedOrganization: '임당중학교'
+    },
+    {
+      id: 'don-20250215-05',
+      referenceCode: 'REQ-20250215-05',
+      date: '2025-02-15',
+      registeredAt: '2025-02-15',
+      name: '정장 세트',
+      category: '정장',
+      items: '남성 정장 세트 (M, B급)',
+      organization: '자동 매칭',
+      status: '거절됨',
+      matchingInfo: '오염 상태 추가 확인이 필요해 거절되었습니다.'
+    }
+  ]
+}
+
 const INITIAL_NOTIFICATIONS = {
   admin: [
     {
@@ -254,7 +321,7 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [adminInquiries, setAdminInquiries] = useState(ADMIN_FAQ_SEED)
   const [isBootstrapped, setIsBootstrapped] = useState(() => typeof window === 'undefined')
-  const [donations, setDonations] = useState({}) // username별로 기부 내역 관리
+  const [donations, setDonations] = useState(INITIAL_DONATION_ITEMS) // username별로 기부 내역 관리
   const [boardPosts, setBoardPosts] = useState({ review: [], request: [] }) // 작성된 게시글 관리
   const [boardViews, setBoardViews] = useState({}) // 게시글 조회수 관리 { 'postId': views }
   const [boardWriteType, setBoardWriteType] = useState('review')
@@ -869,14 +936,26 @@ export default function App() {
     if (!currentUser) return
     const username = currentUser.username
     const donationId = `donation-${Date.now()}`
+    const now = new Date()
+    const formattedDate = now.toISOString().split('T')[0]
+    const referenceSuffix = Math.floor(Math.random() * 900 + 100)
+    const referenceCode = `REQ-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(
+      now.getDate()
+    ).padStart(2, '0')}-${referenceSuffix}`
     const newDonation = {
       id: donationId,
-      date: new Date().toISOString().split('T')[0],
+      referenceCode,
+      date: formattedDate,
+      registeredAt: formattedDate,
+      name: donationData.itemDetail || donationData.itemType || '내 기부 물품',
+      category: donationData.itemType || '기부 물품',
       items: `${donationData.itemType} - ${donationData.itemDetail || ''} (${donationData.itemSize}, ${donationData.itemCondition})`,
-      organization: donationData.donationMethod === '자동 매칭' 
-        ? '자동 매칭' 
-        : donationData.donationOrganization || '미선택',
-      status: '대기'
+      organization: donationData.donationMethod === '자동 매칭'
+        ? '자동 매칭'
+        : donationData.donationOrganization || '미정',
+      status: '승인대기',
+      matchingInfo: '관리자 검토 중입니다.',
+      matchedOrganization: null
     }
     setDonations(prev => ({
       ...prev,
@@ -1170,6 +1249,7 @@ export default function App() {
           accounts={accounts}
           profiles={profiles}
           notifications={notifications}
+          shipments={shipments}
           onResetPassword={handleAdminPasswordReset}
           onDeleteUser={handleAdminDeleteUser}
           onNavigateHome={goToMain}
@@ -1263,6 +1343,8 @@ export default function App() {
           currentUser={currentUser}
           onRequireLogin={goToLogin}
           shipments={shipments}
+          donationItems={currentUser ? donations[currentUser.username] || [] : []}
+          onNavigateDeliveryStatus={() => goToDeliveryCheck()}
         />
       ) : activePage === 'deliveryCheck' ? (
         <DeliveryCheckPage
