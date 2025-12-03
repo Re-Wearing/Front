@@ -963,6 +963,55 @@ export default function App() {
     }))
   }
 
+  const handleSignup = (formData, membership) => {
+    const username = formData[`username-${membership}`];
+    const password = formData[`password-${membership}`];
+    const fullName = formData[`fullName-${membership}`] 
+                  || formData[`manager-${membership}`]; // 기관은 manager가 이름 역할
+    const email = formData[`email-${membership}`];
+    const phone = formData[`phone-${membership}`];
+    const nickname = formData[`nickname-${membership}`] 
+                  || formData[`orgName-${membership}`];
+    const address = formData[`address-${membership}`];
+    const addressDetail = formData[`addressDetail-${membership}`];
+    const postalCode = formData[`postalCode-${membership}`];
+  
+    // 중복 아이디 체크
+    if (accounts[username]) {
+      alert("이미 존재하는 아이디입니다!");
+      return;
+    }
+  
+    // 1) accounts에 사용자 추가
+    setAccounts(prev => ({
+      ...prev,
+      [username]: {
+        password,
+        role: membership === "general" ? "일반 회원" : "기관 회원",
+        name: fullName,
+        email
+      }
+    }));
+  
+    // 2) profiles에 프로필 정보 저장
+    setProfiles(prev => ({
+      ...prev,
+      [username]: {
+        fullName,
+        nickname: nickname || fullName,
+        phone,
+        address,
+        addressDetail,
+        postalCode,
+        allowEmail: true,
+        useAnonymousName: false
+      }
+    }));
+  
+    alert("회원가입이 완료되었습니다!");
+    goToLogin();
+  };
+  
   const handleNotificationNavigate = notification => {
     if (!notification?.target) return
     switch (notification.target) {
@@ -1145,6 +1194,8 @@ export default function App() {
           onLogout={handleLogout}
           onNotifications={goToNotifications}
           unreadCount={unreadCount}
+          onSignupSubmit={handleSignup}
+
           onMenu={() => setIsMenuOpen(true)}
         />
       ) : activePage === 'login' ? (
