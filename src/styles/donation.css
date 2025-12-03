@@ -83,6 +83,26 @@
   gap: 2rem;
 }
 
+.applicant-info {
+  background: #f7f7f9;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  color: #444;
+}
+
+.applicant-info strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+  color: #2f261c;
+}
+
+.applicant-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #7a6b55;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -101,6 +121,13 @@
 .error-message {
   color: #ff6b6b;
   font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.input-hint {
+  font-size: 0.8rem;
+  color: #9a8f7d;
+  margin-left: auto;
   font-weight: 400;
 }
 

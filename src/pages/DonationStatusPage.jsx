@@ -14,7 +14,8 @@ export default function DonationStatusPage({
   onRequireLogin,
   shipments = [],
   donationItems = [],
-  onNavigateDeliveryStatus = null
+  onNavigateDeliveryStatus = null,
+  onCancelDonation = null
 }) {
   if (!isLoggedIn || !currentUser) {
     if (onRequireLogin) {
@@ -39,21 +40,23 @@ export default function DonationStatusPage({
   const [activeTab, setActiveTab] = useState('approval')
 
   const approvalStatusDescriptions = {
-    승인대기: '관리자가 검토 중입니다.',
-    매칭대기: '수혜 기관 매칭을 기다리는 중입니다.',
+    승인대기: '관리자 검토 중입니다.',
+    매칭대기: '기관 매칭을 기다리는 중입니다.',
     매칭됨: '기관과 매칭이 완료되었어요.',
     거절됨: '사유를 확인 후 다시 신청해주세요.',
-    배송대기: '배송 준비 중입니다.'
+    배송대기: '배송 준비 중입니다.',
+    취소됨: '기부자가 신청을 취소했습니다.'
   }
 
   const getApprovalStatus = status => {
     const normalized = normalizeStatus(status)
     if (!normalized) return '승인대기'
+    if (normalized.includes('취소')) return '취소됨'
     if (normalized.includes('배송대기')) return '배송대기'
     if (normalized.includes('거절') || normalized.includes('reject')) return '거절됨'
     if (normalized.includes('매칭됨') || normalized.includes('matched')) return '매칭됨'
-    if (normalized.includes('승인') || normalized.includes('approved') || normalized.includes('매칭대기'))
-      return '매칭대기'
+    if (normalized === '승인대기' || normalized.includes('승인대기')) return '승인대기'
+    if (normalized.includes('매칭대기') || normalized.includes('approved')) return '매칭대기'
     return '승인대기'
   }
 
@@ -69,6 +72,8 @@ export default function DonationStatusPage({
         return '#ff6b6b'
       case '배송대기':
         return '#7a6b55'
+      case '취소됨':
+        return '#b0b0b0'
       default:
         return '#7a6b55'
     }
@@ -88,13 +93,19 @@ export default function DonationStatusPage({
             item.matchingInfo ||
             item.matchingSummary ||
             (statusLabel === '매칭대기'
-              ? '기관 매칭을 기다리는 중입니다.'
+              ? item.pendingOrganization ||
+                item.donationOrganization ||
+                (item.donationMethod === '직접 매칭' && item.organization && item.organization !== '자동 매칭')
+                ? `${item.pendingOrganization || item.donationOrganization || item.organization} 기관 확인 중입니다.`
+                : '기관 매칭을 기다리는 중입니다.'
               : statusLabel === '매칭됨'
               ? `${item.organization || item.matchedOrganization || '매칭된 기관'}과 연결되었어요.`
               : statusLabel === '승인대기'
               ? '관리자 검토 중입니다.'
               : statusLabel === '거절됨'
-              ? '사유 확인 후 다시 신청해주세요.'
+              ? item.rejectionReason
+                ? `거절 사유: ${item.rejectionReason}`
+                : '사유 확인 후 다시 신청해주세요.'
               : '-'),
           matchedOrganization: item.matchedOrganization || (statusLabel === '매칭됨' ? item.organization : null),
           referenceCode: item.referenceCode || item.id || `donation-${index}`
@@ -103,7 +114,17 @@ export default function DonationStatusPage({
     [donationItems]
   )
 
-  const approvalStatusOrder = ['승인대기', '매칭대기', '매칭됨', '거절됨', '배송대기']
+  const approvalStatusOrder = ['승인대기', '매칭대기', '매칭됨', '거절됨', '배송대기', '취소됨']
+  const handleCancelRequest = itemId => {
+    if (typeof onCancelDonation !== 'function') return
+    const confirmed = window.confirm('기부 신청을 취소하시겠어요? 승인 대기 또는 매칭 대기 상태에서만 취소할 수 있습니다.')
+    if (!confirmed) return
+    const result = onCancelDonation(itemId)
+    if (result === false) {
+      window.alert('취소할 수 없는 상태입니다.')
+    }
+  }
+
 
   const approvalCounts = useMemo(() => {
     const counts = approvalStatusOrder.reduce((acc, key) => {
@@ -274,6 +295,15 @@ export default function DonationStatusPage({
                           onClick={() => handleNavigateToDeliveryStatus(item.referenceCode)}
                         >
                           배송 조회
+                        </button>
+                      )}
+                      {['승인대기', '매칭대기'].includes(item.status) && (
+                        <button
+                          type="button"
+                          className="btn-cancel"
+                          onClick={() => handleCancelRequest(item.id)}
+                        >
+                          기부 취소
                         </button>
                       )}
                     </div>

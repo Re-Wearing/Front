@@ -144,7 +144,7 @@ export const membershipForms = {
       placeholder: '인증코드를 입력하세요',
       actionLabel: '인증 확인'
     },
-    { id: 'phone', label: '전화번호', type: 'tel', placeholder: '010-0000-0000' },
+    { id: 'phone', label: '전화번호', type: 'tel', placeholder: '숫자만 입력 (예: 01012345678)', helper: '숫자만 입력해주세요' },
     { id: 'address', label: '주소', type: 'text', placeholder: '주소를 입력하세요' },
 { id: 'addressDetail', label: '상세주소', type: 'text', placeholder: '상세주소를 입력하세요' },
 { id: 'zipCode', label: '우편번호', type: 'text', placeholder: '00000' },
@@ -181,7 +181,13 @@ export const membershipForms = {
       placeholder: '인증코드를 입력하세요',
       actionLabel: '인증 확인'
     },
-    { id: 'phone', label: '전화번호', type: 'tel', placeholder: '010-0000-0000' },
+    {
+      id: 'phone',
+      label: '전화번호',
+      type: 'tel',
+      placeholder: '숫자만 입력 (예: 01012345678)',
+      helper: '숫자만 입력해주세요'
+    },
     {
       id: 'nicknameInfo',
       label: '닉네임',

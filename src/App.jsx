@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import IntroLanding from './pages/IntroLanding'
 import SignupPage from './pages/SignupPage'
 import LoginPage from './pages/LoginPage'
@@ -41,6 +41,7 @@ import './styles/faq.css'
 import './styles/category-menu.css'
 import './styles/donation-status.css'
 import { ADMIN_FAQ_SEED } from './constants/adminFaqData'
+import { formatPhoneNumber, stripPhoneNumber } from './utils/phone'
 
 const INITIAL_ACCOUNTS = {
   admin: {
@@ -154,20 +155,60 @@ const INITIAL_DONATION_ITEMS = {
       category: '아우터',
       items: '겨울 패딩 세트 (L, A급)',
       organization: '자동 매칭',
-      status: '승인대기',
-      matchingInfo: '관리자 검토 중입니다.'
+      donationOrganization: null,
+      donationOrganizationId: null,
+      donationMethod: '자동 매칭',
+      status: '매칭됨',
+      matchingInfo: '임당초등학교와 매칭되었습니다.',
+      matchedOrganization: '임당초등학교',
+      pendingOrganization: null,
+      rejectionReason: '',
+      deliveryMethod: '택배 배송',
+      desiredDate: '2025-02-10',
+      memo: '주말 수거 희망',
+      itemDescription: '따뜻한 패딩 2벌과 머플러 구성',
+      contact: '010-1234-5678',
+      donorName: '권석현',
+      isAnonymous: false,
+      donationOrganization: null,
+      images: [
+        {
+          id: 'img-coat-1',
+          url: 'https://images.unsplash.com/photo-1521335629791-ce4aec67ddaf?auto=format&fit=crop&w=640&q=80'
+        }
+      ]
     },
     {
       id: 'don-20250205-02',
       referenceCode: 'REQ-20250205-02',
       date: '2025-02-05',
       registeredAt: '2025-02-05',
-      name: '아동 겨울 의류',
-      category: '아동 의류',
-      items: '아동 겨울 의류 5벌 (S, B급)',
+      name: '생활용품 세트',
+      category: '잡화',
+      items: '생활용품 8종 세트',
       organization: '자동 매칭',
+      donationOrganization: null,
+      donationOrganizationId: null,
+      donationMethod: '자동 매칭',
       status: '매칭대기',
-      matchingInfo: '기관 매칭을 기다리는 중입니다.'
+      matchingInfo: '기관 매칭을 기다리는 중입니다.',
+      matchedOrganization: null,
+      pendingOrganization: null,
+      rejectionReason: '',
+      deliveryMethod: '택배 배송',
+      desiredDate: '2025-02-20',
+      memo: '',
+      itemDescription: '주방, 욕실, 세탁 필수품 묶음입니다.',
+      contact: '010-1234-5678',
+      donorName: '권석현',
+      isAnonymous: false,
+      donationOrganization: null,
+      images: [
+        {
+          id: 'img-life-1',
+          url: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&w=640&q=80'
+        }
+      ]
     },
     {
       id: 'don-20250210-03',
@@ -178,9 +219,28 @@ const INITIAL_DONATION_ITEMS = {
       category: '신발',
       items: '운동화 세트 (260mm, A급)',
       organization: '임당초등학교',
+      donationOrganization: '임당초등학교',
+      donationOrganizationId: null,
+      donationMethod: '자동 매칭',
       status: '매칭됨',
       matchingInfo: '임당초등학교와 매칭되었습니다.',
-      matchedOrganization: '임당초등학교'
+      matchedOrganization: '임당초등학교',
+      pendingOrganization: null,
+      rejectionReason: '',
+      deliveryMethod: '택배 배송',
+      desiredDate: '2025-02-22',
+      memo: '',
+      itemDescription: '새 운동화, 박스 포함',
+      contact: '010-1234-5678',
+      donorName: '권석현',
+      isAnonymous: false,
+      donationOrganization: null,
+      images: [
+        {
+          id: 'img-shoes-1',
+          url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=640&q=80'
+        }
+      ]
     },
     {
       id: 'don-20250212-04',
@@ -191,9 +251,28 @@ const INITIAL_DONATION_ITEMS = {
       category: '잡화',
       items: '피트니스 용품 세트 (미사용)',
       organization: '임당중학교',
+      donationOrganization: '임당중학교',
+      donationOrganizationId: null,
+      donationMethod: '자동 매칭',
       status: '배송대기',
       matchingInfo: '배송 준비 중입니다.',
-      matchedOrganization: '임당중학교'
+      matchedOrganization: '임당중학교',
+      pendingOrganization: null,
+      rejectionReason: '',
+      deliveryMethod: '택배 배송',
+      desiredDate: '2025-02-25',
+      memo: '',
+      itemDescription: '헬스 기구 3종',
+      contact: '010-1234-5678',
+      donorName: '권석현',
+      isAnonymous: false,
+      donationOrganization: null,
+      images: [
+        {
+          id: 'img-fit-1',
+          url: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=640&q=80'
+        }
+      ]
     },
     {
       id: 'don-20250215-05',
@@ -204,11 +283,62 @@ const INITIAL_DONATION_ITEMS = {
       category: '정장',
       items: '남성 정장 세트 (M, B급)',
       organization: '자동 매칭',
+      donationOrganization: null,
+      donationOrganizationId: null,
+      donationMethod: '자동 매칭',
       status: '거절됨',
-      matchingInfo: '오염 상태 추가 확인이 필요해 거절되었습니다.'
+      matchingInfo: '오염 상태 추가 확인이 필요해 거절되었습니다.',
+      matchedOrganization: null,
+      pendingOrganization: null,
+      rejectionReason: '오염 상태 추가 확인 필요',
+      deliveryMethod: '직접 배송',
+      desiredDate: '2025-02-28',
+      memo: '보관 중 약간의 주름 있음',
+      itemDescription: '남성 정장 세트, 사용감 보통',
+      contact: '010-1234-5678',
+      donorName: '권석현',
+      isAnonymous: false,
+      donationOrganization: null,
+      images: [
+        {
+          id: 'img-suit-1',
+          url: 'https://images.unsplash.com/photo-1526925539332-aa3b66e35444?auto=format&fit=crop&w=640&q=80'
+        }
+      ]
     }
   ]
 }
+
+const INITIAL_PENDING_ORGANIZATIONS = [
+  {
+    id: 'org-req-202502-01',
+    username: 'hanbit',
+    organizationName: '한빛초등학교',
+    contactName: '김한빛',
+    email: 'contact@hanbit.edu',
+    phone: '02-345-6789',
+    address: '서울특별시 중구 한빛로 12',
+    submittedAt: '2025-02-15',
+    status: 'pending',
+    memo: '경기도권 저소득층 아동 대상 프로그램 운영',
+    rejectionReason: ''
+  },
+  {
+    id: 'org-req-202502-02',
+    username: 'nicole',
+    organizationName: '나눔 중학교',
+    contactName: '이중현',
+    email: 'hello@nanum.ms.kr',
+    phone: '031-123-7890',
+    address: '경기도 성남시 나눔길 45',
+    submittedAt: '2025-02-18',
+    status: 'pending',
+    memo: '청소년 체육복 지원 프로젝트 진행 예정',
+    rejectionReason: ''
+  }
+]
+
+const INITIAL_MATCHING_INVITES = []
 
 const INITIAL_NOTIFICATIONS = {
   admin: [
@@ -272,6 +402,8 @@ const INITIAL_NOTIFICATIONS = {
 
 const LANDING_KEY = 'rewearLandingSeen'
 const ADMIN_INQUIRIES_KEY = 'rewearAdminInquiries'
+const PENDING_ORGS_KEY = 'rewearPendingOrganizations'
+const DONATIONS_KEY = 'rewearDonations'
 
 const hasSeenLanding = () => {
   if (typeof window === 'undefined') return false
@@ -321,7 +453,74 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [adminInquiries, setAdminInquiries] = useState(ADMIN_FAQ_SEED)
   const [isBootstrapped, setIsBootstrapped] = useState(() => typeof window === 'undefined')
-  const [donations, setDonations] = useState(INITIAL_DONATION_ITEMS) // username별로 기부 내역 관리
+  const [donations, setDonations] = useState(() => {
+    if (typeof window === 'undefined') return INITIAL_DONATION_ITEMS
+    const stored = window.sessionStorage.getItem(DONATIONS_KEY)
+    if (stored) {
+      try {
+        return JSON.parse(stored)
+      } catch (error) {
+        console.error('Failed to parse stored donations', error)
+      }
+    }
+    window.sessionStorage.setItem(DONATIONS_KEY, JSON.stringify(INITIAL_DONATION_ITEMS))
+    return INITIAL_DONATION_ITEMS
+  }) // username별로 기부 내역 관리
+  const [pendingOrganizations, setPendingOrganizations] = useState(() => {
+    if (typeof window === 'undefined') return INITIAL_PENDING_ORGANIZATIONS
+    const stored = window.sessionStorage.getItem(PENDING_ORGS_KEY)
+    if (stored) {
+      try {
+        return JSON.parse(stored)
+      } catch (error) {
+        console.error('Failed to parse stored pending organizations', error)
+      }
+    }
+    window.sessionStorage.setItem(PENDING_ORGS_KEY, JSON.stringify(INITIAL_PENDING_ORGANIZATIONS))
+    return INITIAL_PENDING_ORGANIZATIONS
+  })
+  const [matchingInvites, setMatchingInvites] = useState(INITIAL_MATCHING_INVITES)
+
+  const organizationOptions = useMemo(
+    () =>
+      Object.entries(accounts)
+        .filter(([, acc]) => acc.role === '기관 회원')
+        .map(([username, acc]) => ({
+          username,
+          name: profiles[username]?.fullName || profiles[username]?.nickname || acc.name || username,
+          email: acc.email
+        })),
+    [accounts, profiles]
+  )
+
+  const allDonationItems = useMemo(
+    () =>
+      Object.entries(donations).flatMap(([owner, items]) =>
+        (items || []).map(item => ({
+          owner,
+          ownerName: profiles[owner]?.fullName || accounts[owner]?.name || owner,
+          ...item
+        }))
+      ),
+    [donations, accounts, profiles]
+  )
+
+  const findOrganizationUsernameByName = name => {
+    if (!name) return null
+    const entry = Object.entries(accounts).find(([username, acc]) => {
+      if (acc.role !== '기관 회원') return false
+      const profile = profiles[username]
+      return acc.name === name || profile?.fullName === name || profile?.nickname === name
+    })
+    return entry ? entry[0] : null
+  }
+  const getOrganizationUsername = identifier => {
+    if (!identifier) return null
+    if (accounts[identifier]?.role === '기관 회원') {
+      return identifier
+    }
+    return findOrganizationUsernameByName(identifier)
+  }
   const [boardPosts, setBoardPosts] = useState({ review: [], request: [] }) // 작성된 게시글 관리
   const [boardViews, setBoardViews] = useState({}) // 게시글 조회수 관리 { 'postId': views }
   const [boardWriteType, setBoardWriteType] = useState('review')
@@ -344,6 +543,16 @@ export default function App() {
       window.sessionStorage.setItem(LANDING_KEY, 'true')
     }
   }, [showLanding])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.sessionStorage.setItem(PENDING_ORGS_KEY, JSON.stringify(pendingOrganizations))
+  }, [pendingOrganizations])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.sessionStorage.setItem(DONATIONS_KEY, JSON.stringify(donations))
+  }, [donations])
 
   useEffect(() => {
     currentUserRef.current = currentUser
@@ -793,13 +1002,14 @@ export default function App() {
       return { success: false, message: '로그인이 필요합니다.' }
     }
     const username = currentUser.username
+    const formattedPhone = formatPhoneNumber(stripPhoneNumber(updates.phone || profiles[username]?.phone || ''))
     setProfiles(prev => ({
       ...prev,
       [username]: {
         ...prev[username],
         fullName: updates.fullName?.trim() || prev[username]?.fullName || accounts[username]?.name,
         nickname: updates.nickname,
-        phone: updates.phone,
+        phone: formattedPhone,
         address: updates.address,
         allowEmail: updates.allowEmail,
         useAnonymousName:
@@ -932,9 +1142,283 @@ export default function App() {
     })
   }
 
+  const pushUserNotification = (username, { title, description, type = 'info', target }) => {
+    if (!username) return
+    setNotifications(prev => {
+      const list = prev[username] || []
+      const newNotification = {
+        id: `${username}-notif-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        title,
+        type,
+        date: new Date().toISOString().split('T')[0],
+        read: false,
+        description,
+        target
+      }
+      return {
+        ...prev,
+        [username]: [newNotification, ...list]
+      }
+    })
+  }
+
+  const getDonationItemSnapshot = (owner, itemId) => {
+    const list = donations[owner] || []
+    return list.find(item => item.id === itemId)
+  }
+
+  const getStatusLabel = status => {
+    switch (status) {
+      case '승인대기':
+        return '승인 대기'
+      case '매칭대기':
+        return '매칭 대기'
+      case '매칭됨':
+        return '매칭 완료'
+      case '거절됨':
+        return '거절됨'
+      case '배송대기':
+        return '배송 대기'
+      case '배송완료':
+        return '배송 완료'
+      default:
+        return status
+    }
+  }
+
+  const updateDonationItem = (owner, itemId, updates) => {
+    setDonations(prev => {
+      const targetList = prev[owner] || []
+      const nextList = targetList.map(item => {
+        if (item.id !== itemId) return item
+        const patch = typeof updates === 'function' ? updates(item) : updates
+        return { ...item, ...patch }
+      })
+      return { ...prev, [owner]: nextList }
+    })
+  }
+
+  const handleApproveOrganizationRequest = requestId => {
+    const request = pendingOrganizations.find(req => req.id === requestId)
+    if (!request) return
+    setPendingOrganizations(prev =>
+      prev.map(req =>
+        req.id === requestId
+          ? { ...req, status: 'approved', reviewedAt: new Date().toISOString(), rejectionReason: '' }
+          : req
+      )
+    )
+    if (!accounts[request.username]) {
+      setAccounts(prev => ({
+        ...prev,
+        [request.username]: {
+          password: 'organ123!',
+          role: '기관 회원',
+          name: request.organizationName,
+          email: request.email
+        }
+      }))
+    }
+    if (!profiles[request.username]) {
+      setProfiles(prev => ({
+        ...prev,
+        [request.username]: {
+          fullName: request.organizationName,
+          nickname: request.organizationName,
+          phone: request.phone,
+          address: request.address,
+          allowEmail: true,
+          useAnonymousName: false
+        }
+      }))
+    }
+  }
+
+  const handleRejectOrganizationRequest = (requestId, reason) => {
+    setPendingOrganizations(prev =>
+      prev.map(req =>
+        req.id === requestId
+          ? {
+              ...req,
+              status: 'rejected',
+              reviewedAt: new Date().toISOString(),
+              rejectionReason: reason
+            }
+          : req
+      )
+    )
+  }
+
+  const handleDonationStatusChange = (owner, itemId, nextStatus, options = {}) => {
+    const itemSnapshot = getDonationItemSnapshot(owner, itemId)
+    const statusLabel = getStatusLabel(nextStatus)
+    const directMatchOrgId =
+      options.directMatchOrganizationId || itemSnapshot?.donationOrganizationId || null
+    const directMatchOrgName =
+      options.directMatchOrganization ||
+      options.pendingOrganization ||
+      itemSnapshot?.pendingOrganization ||
+      itemSnapshot?.donationOrganization ||
+      itemSnapshot?.organization ||
+      ''
+    const shouldAutoInvite =
+      nextStatus === '매칭대기' &&
+      itemSnapshot &&
+      itemSnapshot.donationMethod === '직접 매칭' &&
+      (directMatchOrgId || directMatchOrgName) &&
+      !itemSnapshot.inviteId
+    updateDonationItem(owner, itemId, item => ({
+      status: nextStatus,
+      matchingInfo:
+        options.matchingInfo ??
+        (nextStatus === '매칭대기'
+          ? '기관 매칭을 기다리는 중입니다.'
+          : nextStatus === '승인대기'
+          ? '관리자 검토 중입니다.'
+          : item.matchingInfo),
+      matchedOrganization: options.matchedOrganization ?? (nextStatus === '거절됨' ? null : item.matchedOrganization),
+      pendingOrganization: options.pendingOrganization ?? (nextStatus === '거절됨' ? null : item.pendingOrganization),
+      rejectionReason: options.rejectionReason ?? (nextStatus === '거절됨' ? options.rejectionReason || '' : ''),
+      inviteId: options.inviteId ?? item.inviteId
+    }))
+    if (itemSnapshot) {
+      pushUserNotification(owner, {
+        title: '기부 물품 상태 변경',
+        description:
+          nextStatus === '거절됨' && options.rejectionReason
+            ? `'${itemSnapshot.name || itemSnapshot.items}'이(가) 거절되었습니다. 사유: ${options.rejectionReason}`
+            : `'${itemSnapshot.name || itemSnapshot.items}' 상태가 '${statusLabel}'로 변경되었습니다.`,
+        target: 'donationStatus'
+      })
+      if (shouldAutoInvite) {
+        const orgIdentifier = directMatchOrgId || directMatchOrgName
+        const orgUsername = getOrganizationUsername(orgIdentifier)
+        if (orgUsername) {
+          handleSendMatchingInvite(owner, itemId, orgUsername, {
+            notifyDonor: false,
+            organizationNameOverride: directMatchOrgName || itemSnapshot?.donationOrganization
+          })
+        }
+      }
+    }
+  }
+
+  const handleSendMatchingInvite = (owner, itemId, organizationUsername, options = {}) => {
+    const { notifyDonor = true, organizationNameOverride } = options
+    const organizationAccount = accounts[organizationUsername]
+    if (!organizationAccount) return
+    const organizationName =
+      organizationNameOverride ||
+      profiles[organizationUsername]?.fullName ||
+      profiles[organizationUsername]?.nickname ||
+      organizationAccount.name ||
+      organizationUsername
+
+    const inviteId = `invite-${Date.now()}`
+    const itemSnapshot = getDonationItemSnapshot(owner, itemId)
+    setMatchingInvites(prev => [
+      {
+        id: inviteId,
+        itemId,
+        owner,
+        itemName: itemSnapshot?.name || itemSnapshot?.items || itemId,
+        itemDescription: itemSnapshot?.itemDescription || '',
+        deliveryMethod: itemSnapshot?.deliveryMethod || '',
+        desiredDate: itemSnapshot?.desiredDate || '',
+        memo: itemSnapshot?.memo || '',
+        contact: itemSnapshot?.contact || '',
+        images: itemSnapshot?.images ? [...itemSnapshot.images] : [],
+        donorName: profiles[owner]?.fullName || accounts[owner]?.name || owner,
+        organizationUsername,
+        organizationName,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        message: `${organizationName}에 매칭을 요청했습니다.`
+      },
+      ...prev
+    ])
+
+    pushUserNotification(organizationUsername, {
+      title: '새로운 매칭 제안',
+      description: `'${itemSnapshot?.name || itemSnapshot?.items || itemId}' 매칭 제안을 확인해주세요.`,
+      type: 'alert',
+      target: 'organizationDonationStatus'
+    })
+
+    updateDonationItem(owner, itemId, item => ({
+      ...item,
+      status: '매칭대기',
+      matchingInfo: `${organizationName} 기관 확인 중입니다.`,
+      pendingOrganization: organizationName,
+      inviteId
+    }))
+    if (notifyDonor && itemSnapshot) {
+      pushUserNotification(owner, {
+        title: '기관 매칭 진행',
+        description: `${organizationName} 기관에 '${itemSnapshot?.name || itemSnapshot?.items || '기부 물품'}' 매칭을 요청했습니다.`,
+        target: 'donationStatus'
+      })
+    }
+  }
+
+  const handleRespondMatchingInvite = (inviteId, decision, reason) => {
+    const targetInvite = matchingInvites.find(invite => invite.id === inviteId)
+    if (!targetInvite) return
+    setMatchingInvites(prev =>
+      prev.map(invite =>
+        invite.id === inviteId
+          ? {
+              ...invite,
+              status: decision === 'accept' ? 'accepted' : 'rejected',
+              respondedAt: new Date().toISOString(),
+              responseReason: reason || ''
+            }
+          : invite
+      )
+    )
+
+    if (decision === 'accept') {
+      updateDonationItem(targetInvite.owner, targetInvite.itemId, item => ({
+        ...item,
+        status: '매칭됨',
+        matchingInfo:
+          item.deliveryMethod === '직접 배송'
+            ? '직접 배송을 진행해주세요.'
+            : `${targetInvite.organizationName}과 매칭되었습니다.`,
+        matchedOrganization: targetInvite.organizationName,
+        pendingOrganization: null,
+        rejectionReason: ''
+      }))
+      pushUserNotification(targetInvite.owner, {
+        title: '기관 매칭 결과',
+        description: `${targetInvite.organizationName}이(가) '${targetInvite.itemName || targetInvite.itemId}' 매칭을 수락했습니다.`,
+        target: 'donationStatus'
+      })
+    } else {
+      updateDonationItem(targetInvite.owner, targetInvite.itemId, item => ({
+        ...item,
+        status: '매칭대기',
+        matchingInfo: reason ? `기관 거절: ${reason}` : '기관 매칭을 다시 진행합니다.',
+        matchedOrganization: null,
+        pendingOrganization: null,
+        rejectionReason: reason || ''
+      }))
+      pushUserNotification(targetInvite.owner, {
+        title: '기관 매칭 결과',
+        description: reason
+          ? `${targetInvite.organizationName}이(가) '${targetInvite.itemName || targetInvite.itemId}' 매칭을 거절했습니다. 사유: ${reason}`
+          : `${targetInvite.organizationName}이(가) '${targetInvite.itemName || targetInvite.itemId}' 매칭을 거절했습니다.`,
+        target: 'donationStatus'
+      })
+    }
+  }
+
   const handleAddDonation = (donationData) => {
     if (!currentUser) return
     const username = currentUser.username
+    const profile = profiles[username] || {}
+    const donorDisplayName = donationData.isAnonymous ? '익명' : profile.fullName || currentUser.name || username
+    const contactInfo = formatPhoneNumber(stripPhoneNumber(donationData.contact || profile.phone || ''))
     const donationId = `donation-${Date.now()}`
     const now = new Date()
     const formattedDate = now.toISOString().split('T')[0]
@@ -942,6 +1426,12 @@ export default function App() {
     const referenceCode = `REQ-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(
       now.getDate()
     ).padStart(2, '0')}-${referenceSuffix}`
+    const directOrgName =
+      donationData.donationMethod === '직접 매칭'
+        ? donationData.donationOrganizationName || donationData.donationOrganization || null
+        : null
+    const directOrgId =
+      donationData.donationMethod === '직접 매칭' ? donationData.donationOrganizationId || null : null
     const newDonation = {
       id: donationId,
       referenceCode,
@@ -950,17 +1440,53 @@ export default function App() {
       name: donationData.itemDetail || donationData.itemType || '내 기부 물품',
       category: donationData.itemType || '기부 물품',
       items: `${donationData.itemType} - ${donationData.itemDetail || ''} (${donationData.itemSize}, ${donationData.itemCondition})`,
-      organization: donationData.donationMethod === '자동 매칭'
-        ? '자동 매칭'
-        : donationData.donationOrganization || '미정',
+      organization:
+        donationData.donationMethod === '자동 매칭' ? '자동 매칭' : directOrgName || donationData.donationOrganization || '미정',
+      donationMethod: donationData.donationMethod,
       status: '승인대기',
       matchingInfo: '관리자 검토 중입니다.',
-      matchedOrganization: null
+      matchedOrganization: donationData.donationMethod === '직접 매칭' ? directOrgName : null,
+      donationOrganization: directOrgName,
+      donationOrganizationId: directOrgId,
+      pendingOrganization: null,
+      rejectionReason: '',
+      inviteId: null,
+      images: donationData.images || [],
+      deliveryMethod: donationData.deliveryMethod,
+      desiredDate: donationData.desiredDate,
+      memo: donationData.memo,
+      itemDescription: donationData.itemDescription,
+      contact: contactInfo,
+      donorName: donorDisplayName,
+      isAnonymous: Boolean(donationData.isAnonymous),
+      donationOrganization: donationData.donationMethod === '직접 매칭' ? donationData.donationOrganization || null : null
     }
     setDonations(prev => ({
       ...prev,
       [username]: [...(prev[username] || []), newDonation]
     }))
+  }
+
+  const handleCancelDonation = (owner, itemId) => {
+    const itemSnapshot = getDonationItemSnapshot(owner, itemId)
+    if (!itemSnapshot) return false
+    const normalizedStatus = String(itemSnapshot.status || '').replace(/\s+/g, '')
+    if (!['승인대기', '매칭대기'].includes(normalizedStatus)) return false
+
+    updateDonationItem(owner, itemId, {
+      status: '취소됨',
+      matchingInfo: '기부자가 신청을 취소했습니다.',
+      matchedOrganization: null,
+      pendingOrganization: null,
+      inviteId: null
+    })
+    setMatchingInvites(prev => prev.filter(invite => invite.itemId !== itemId))
+    pushUserNotification(owner, {
+      title: '기부 신청 취소',
+      description: `'${itemSnapshot.name || itemSnapshot.items}' 신청을 취소했습니다.`,
+      target: 'donationStatus'
+    })
+    return true
   }
 
   const handleSignup = (formData, membership) => {
@@ -1021,7 +1547,19 @@ export default function App() {
       case 'inquiryAnswers':
         goToInquiryAnswers({ push: true })
         break
+      case 'donationStatus':
+        goToDonationStatus({ push: true })
+        break
+      case 'organizationDonationStatus':
+        goToDonationStatus({ push: true }, currentUser)
+        break
+      case 'deliveryCheck':
+        goToDeliveryCheck({ push: true })
+        break
       default:
+        if (typeof notification.target === 'string' && notification.target.startsWith('/')) {
+          navigateByPath(notification.target, { userOverride: currentUser })
+        }
         break
     }
   }
@@ -1301,6 +1839,14 @@ export default function App() {
           profiles={profiles}
           notifications={notifications}
           shipments={shipments}
+          pendingOrganizations={pendingOrganizations}
+          donationItems={allDonationItems}
+          organizationOptions={organizationOptions}
+          matchingInvites={matchingInvites}
+          onApproveOrganization={handleApproveOrganizationRequest}
+          onRejectOrganization={handleRejectOrganizationRequest}
+          onUpdateDonationStatus={handleDonationStatusChange}
+          onSendMatchingInvite={handleSendMatchingInvite}
           onResetPassword={handleAdminPasswordReset}
           onDeleteUser={handleAdminDeleteUser}
           onNavigateHome={goToMain}
@@ -1396,6 +1942,7 @@ export default function App() {
           shipments={shipments}
           donationItems={currentUser ? donations[currentUser.username] || [] : []}
           onNavigateDeliveryStatus={() => goToDeliveryCheck()}
+          onCancelDonation={itemId => currentUser && handleCancelDonation(currentUser.username, itemId)}
         />
       ) : activePage === 'deliveryCheck' ? (
         <DeliveryCheckPage
@@ -1425,6 +1972,8 @@ export default function App() {
           onRequireLogin={goToLogin}
           isBootstrapped={isBootstrapped}
           shipments={shipments}
+          matchingInvites={matchingInvites}
+          onRespondMatchingInvite={handleRespondMatchingInvite}
         />
       ) : activePage === 'businessIntro' ? (
         <BusinessIntroPage
@@ -1448,9 +1997,11 @@ export default function App() {
           unreadCount={unreadCount}
           onMenu={() => setIsMenuOpen(true)}
           currentUser={currentUser}
+          currentProfile={currentProfile}
           onRequireLogin={goToLogin}
           onAddDonation={handleAddDonation}
           onGoToDonationStatus={goToDonationStatus}
+          availableOrganizations={organizationOptions}
         />
       ) : (
         <ExperienceLanding

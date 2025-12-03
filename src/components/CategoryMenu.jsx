@@ -33,11 +33,8 @@ const getMenuCategories = role => {
   if (role === '기관 회원') {
     return [
       {
-        title: '기부 조회',
-        items: [
-          { label: '기부 현황 조회', href: '/donation-status' },
-          { label: '배송 조회', href: '#delivery-check' }
-        ]
+        label: '기부 관리',
+        href: '/donation-status'
       },
       {
         title: '게시판',

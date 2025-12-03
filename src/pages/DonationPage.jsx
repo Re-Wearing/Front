@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
 import { mainNavLinks } from '../constants/landingData'
+import { formatPhoneNumber, stripPhoneNumber } from '../utils/phone'
 
 const ITEM_CATEGORIES = [
   '남성 의류',
@@ -23,16 +24,7 @@ const ITEM_SIZES = ['S', 'M', 'L', 'XL', 'XXL', 'FREE', '기타 사이즈']
 const ITEM_CONDITIONS = ['새상품', '사용감 적음', '사용감 보통', '사용감 많음']
 
 const DONATION_METHODS = ['자동 매칭', '직접 매칭']
-const DONATION_ORGANIZATIONS = [
-  '오가닉 재단',
-  '희망 나눔 센터',
-  '그린 라이프',
-  '아름다운 가게',
-  '굿윌스토어',
-  '옷캔',
-  '기타 기관',
-  '기타'
-]
+const DEFAULT_DIRECT_ORGANIZATIONS = ['임당초등학교', '임당중학교']
 const DELIVERY_METHODS = ['직접 배송', '택배 배송']
 
 export default function DonationPage({
@@ -44,10 +36,13 @@ export default function DonationPage({
   unreadCount = 0,
   onMenu = () => {},
   currentUser,
+  currentProfile,
   onRequireLogin,
   onAddDonation,
-  onGoToDonationStatus
+  onGoToDonationStatus,
+  availableOrganizations = []
 }) {
+  const today = new Date().toISOString().split('T')[0]
   const [itemType, setItemType] = useState('')
   const [itemDetail, setItemDetail] = useState('')
   const [itemSize, setItemSize] = useState('')
@@ -61,37 +56,45 @@ export default function DonationPage({
   // 기부 신청 폼 상태
   const [donationMethod, setDonationMethod] = useState('')
   const [donationOrganization, setDonationOrganization] = useState('')
+  const [donationOrganizationLabel, setDonationOrganizationLabel] = useState('')
   const [deliveryMethod, setDeliveryMethod] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
-  const [name, setName] = useState('')
   const [contact, setContact] = useState('')
-  const [desiredDate, setDesiredDate] = useState('')
+  const [desiredDate, setDesiredDate] = useState(today)
   const [memo, setMemo] = useState('')
   const [applicationErrors, setApplicationErrors] = useState({})
+  const applicantName = currentProfile?.fullName || currentUser?.name || currentUser?.username || '신청자'
+
+  const fileToDataURL = file =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
 
   const handleItemTypeChange = (value) => {
     setItemType(value)
     setItemDetail('')
   }
 
-  const handleImageUpload = (e, type) => {
-    const files = Array.from(e.target.files)
-    if (files.length > 0) {
-      const newImages = files.map(file => ({
+  const handleImageUpload = async (e, type) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+    try {
+      const dataUrls = await Promise.all(files.map(file => fileToDataURL(file)))
+      const newImages = dataUrls.map(dataUrl => ({
         id: Date.now() + Math.random(),
-        file,
         type,
-        preview: URL.createObjectURL(file)
+        dataUrl
       }))
-      setImages([...images, ...newImages])
+      setImages(prev => [...prev, ...newImages])
+    } catch (error) {
+      console.error('Failed to read files', error)
     }
   }
 
   const handleRemoveImage = (id) => {
-    const imageToRemove = images.find(img => img.id === id)
-    if (imageToRemove?.preview) {
-      URL.revokeObjectURL(imageToRemove.preview)
-    }
     setImages(images.filter(img => img.id !== id))
   }
 
@@ -149,6 +152,8 @@ export default function DonationPage({
     setStep('application')
   }
 
+  const requiresShippingFields = donationMethod === '자동 매칭' || donationMethod === '직접 매칭'
+
   const validateApplicationForm = () => {
     const newErrors = {}
 
@@ -160,16 +165,15 @@ export default function DonationPage({
       if (!donationOrganization) {
         newErrors.donationOrganization = '기부할 기관을 선택해주세요.'
       }
+    }
+
+    if (requiresShippingFields) {
       if (!deliveryMethod) {
         newErrors.deliveryMethod = '배송 방법을 선택해주세요.'
       }
-      if (!desiredDate) {
+      if (deliveryMethod && deliveryMethod !== '직접 배송' && !desiredDate) {
         newErrors.desiredDate = '희망일을 선택해주세요.'
       }
-    }
-
-    if (!isAnonymous && !name.trim()) {
-      newErrors.name = '이름을 입력해주세요.'
     }
 
     if (!contact.trim()) {
@@ -189,6 +193,7 @@ export default function DonationPage({
 
     // 기부 내역 추가
     if (onAddDonation) {
+      const formattedContact = formatPhoneNumber(contact)
       onAddDonation({
         itemType,
         itemDetail,
@@ -196,12 +201,17 @@ export default function DonationPage({
         itemCondition,
         itemDescription,
         donationMethod,
-        donationOrganization,
+        donationOrganizationId: donationMethod === '직접 매칭' ? donationOrganization : null,
+        donationOrganizationName:
+          donationMethod === '직접 매칭'
+            ? donationOrganizationLabel || donationOrganization
+            : null,
         deliveryMethod,
-        name: isAnonymous ? '익명' : name,
-        contact,
+        isAnonymous,
+        contact: formattedContact,
         desiredDate,
-        memo
+        memo,
+        images
       })
     }
 
@@ -219,11 +229,11 @@ export default function DonationPage({
     setImages([])
     setDonationMethod('')
     setDonationOrganization('')
+    setDonationOrganizationLabel('')
     setDeliveryMethod('')
     setIsAnonymous(false)
-    setName('')
     setContact('')
-    setDesiredDate('')
+    setDesiredDate(today)
     setMemo('')
     
     if (onGoToDonationStatus) {
@@ -233,7 +243,90 @@ export default function DonationPage({
     }
   }
 
-  const today = new Date().toISOString().split('T')[0]
+  const directMatchOptions =
+    availableOrganizations.length > 0
+      ? availableOrganizations.map(org =>
+          typeof org === 'string'
+            ? { label: org, value: org }
+            : {
+                label: org.name || org.label || org.value,
+                value: org.username || org.value || org.label || org.name
+              }
+        )
+      : DEFAULT_DIRECT_ORGANIZATIONS.map(name => ({ label: name, value: name }))
+
+  const renderShippingFields = () => (
+    <>
+      <div className="form-group">
+        <label htmlFor="deliveryMethod">
+          배송 방법
+          {applicationErrors.deliveryMethod && (
+            <span className="error-message">{applicationErrors.deliveryMethod}</span>
+          )}
+        </label>
+        <div className="select-wrapper">
+          <select
+            id="deliveryMethod"
+            value={deliveryMethod}
+            onChange={(e) => setDeliveryMethod(e.target.value)}
+            className={applicationErrors.deliveryMethod ? 'error' : ''}
+          >
+            <option value="">선택하세요</option>
+            {DELIVERY_METHODS.map(method => (
+              <option key={method} value={method}>{method}</option>
+            ))}
+          </select>
+          {deliveryMethod && (
+            <>
+              <span className="check-icon" aria-label="선택됨">✓</span>
+              <button
+                type="button"
+                className="btn-clear"
+                onClick={() => setDeliveryMethod('')}
+                aria-label="선택 취소"
+              >
+                ×
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {deliveryMethod && (
+        <>
+          {deliveryMethod !== '직접 배송' && (
+            <div className="form-group">
+              <label htmlFor="desiredDate">
+                희망일
+                {applicationErrors.desiredDate && (
+                  <span className="error-message">{applicationErrors.desiredDate}</span>
+                )}
+              </label>
+              <input
+                id="desiredDate"
+                type="date"
+                min={today}
+                value={desiredDate}
+                onChange={(e) => setDesiredDate(e.target.value)}
+                className={applicationErrors.desiredDate ? 'error' : ''}
+              />
+            </div>
+          )}
+
+          <div className="form-group">
+            <label htmlFor="memo">메모</label>
+            <textarea
+              id="memo"
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              placeholder="추가로 전달하고 싶은 내용이 있으면 입력하세요"
+              rows={4}
+            />
+          </div>
+        </>
+      )}
+    </>
+  )
 
   // 기부 신청 단계
   if (step === 'application') {
@@ -282,6 +375,7 @@ export default function DonationPage({
                     onChange={(e) => {
                       setDonationMethod(e.target.value)
                       setDonationOrganization('')
+                      setDonationOrganizationLabel('')
                       setDeliveryMethod('')
                     }}
                     className={applicationErrors.donationMethod ? 'error' : ''}
@@ -300,6 +394,7 @@ export default function DonationPage({
                         onClick={() => {
                           setDonationMethod('')
                           setDonationOrganization('')
+                          setDonationOrganizationLabel('')
                           setDeliveryMethod('')
                         }}
                         aria-label="선택 취소"
@@ -311,68 +406,13 @@ export default function DonationPage({
                 </div>
               </div>
 
-              {/* 자동 매칭인 경우 */}
-              {donationMethod === '자동 매칭' && (
-                <>
-                  <div className="form-group">
-                    <div className="form-group-header">
-                      <label htmlFor="name">
-                        이름
-                        {applicationErrors.name && (
-                          <span className="error-message">{applicationErrors.name}</span>
-                        )}
-                      </label>
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={isAnonymous}
-                          onChange={(e) => {
-                            setIsAnonymous(e.target.checked)
-                            if (e.target.checked) {
-                              setName('')
-                            }
-                          }}
-                        />
-                        <span>익명</span>
-                      </label>
-                    </div>
-                    <input
-                      id="name"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="이름을 입력하세요"
-                      className={applicationErrors.name ? 'error' : ''}
-                      disabled={isAnonymous}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="contact">
-                      연락처
-                      {applicationErrors.contact && (
-                        <span className="error-message">{applicationErrors.contact}</span>
-                      )}
-                    </label>
-                    <input
-                      id="contact"
-                      type="tel"
-                      value={contact}
-                      onChange={(e) => setContact(e.target.value)}
-                      placeholder="010-0000-0000"
-                      className={applicationErrors.contact ? 'error' : ''}
-                    />
-                  </div>
-                </>
-              )}
-
               {/* 직접 매칭인 경우 */}
               {donationMethod === '직접 매칭' && (
                 <>
-                  {/* 기부 선택 */}
+                  {/* 기관 선택 */}
                   <div className="form-group">
                     <label htmlFor="donationOrganization">
-                      기부 선택
+                      기관 선택
                       {applicationErrors.donationOrganization && (
                         <span className="error-message">{applicationErrors.donationOrganization}</span>
                       )}
@@ -381,12 +421,18 @@ export default function DonationPage({
                       <select
                         id="donationOrganization"
                         value={donationOrganization}
-                        onChange={(e) => setDonationOrganization(e.target.value)}
+                        onChange={(e) => {
+                          const option = e.target.selectedOptions[0]
+                          setDonationOrganization(e.target.value)
+                          setDonationOrganizationLabel(option?.dataset?.label || option?.textContent || '')
+                        }}
                         className={applicationErrors.donationOrganization ? 'error' : ''}
                       >
                         <option value="">선택하세요</option>
-                        {DONATION_ORGANIZATIONS.map(org => (
-                          <option key={org} value={org}>{org}</option>
+                        {directMatchOptions.map(org => (
+                          <option key={org.value} value={org.value} data-label={org.label}>
+                            {org.label}
+                          </option>
                         ))}
                       </select>
                       {donationOrganization && (
@@ -395,7 +441,10 @@ export default function DonationPage({
                           <button
                             type="button"
                             className="btn-clear"
-                            onClick={() => setDonationOrganization('')}
+                            onClick={() => {
+                              setDonationOrganization('')
+                              setDonationOrganizationLabel('')
+                            }}
                             aria-label="선택 취소"
                           >
                             ×
@@ -405,128 +454,50 @@ export default function DonationPage({
                     </div>
                   </div>
 
-                  {/* 배송 방법 */}
-                  {donationOrganization && (
-                    <div className="form-group">
-                      <label htmlFor="deliveryMethod">
-                        배송 방법
-                        {applicationErrors.deliveryMethod && (
-                          <span className="error-message">{applicationErrors.deliveryMethod}</span>
-                        )}
-                      </label>
-                      <div className="select-wrapper">
-                        <select
-                          id="deliveryMethod"
-                          value={deliveryMethod}
-                          onChange={(e) => setDeliveryMethod(e.target.value)}
-                          className={applicationErrors.deliveryMethod ? 'error' : ''}
-                        >
-                          <option value="">선택하세요</option>
-                          {DELIVERY_METHODS.map(method => (
-                            <option key={method} value={method}>{method}</option>
-                          ))}
-                        </select>
-                        {deliveryMethod && (
-                          <>
-                            <span className="check-icon" aria-label="선택됨">✓</span>
-                            <button
-                              type="button"
-                              className="btn-clear"
-                              onClick={() => setDeliveryMethod('')}
-                              aria-label="선택 취소"
-                            >
-                              ×
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                </>
+              )}
 
-                  {/* 이름, 연락처 */}
+              {donationMethod && (
+                <>
                   <div className="form-group">
                     <div className="form-group-header">
-                      <label htmlFor="name">
-                        이름
-                        {applicationErrors.name && (
-                          <span className="error-message">{applicationErrors.name}</span>
-                        )}
-                      </label>
+                      <label>신청자</label>
                       <label className="checkbox-label">
                         <input
                           type="checkbox"
                           checked={isAnonymous}
-                          onChange={(e) => {
-                            setIsAnonymous(e.target.checked)
-                            if (e.target.checked) {
-                              setName('')
-                            }
-                          }}
+                          onChange={(e) => setIsAnonymous(e.target.checked)}
                         />
-                        <span>익명</span>
+                        <span>익명으로 표시</span>
                       </label>
                     </div>
-                    <input
-                      id="name"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="이름을 입력하세요"
-                      className={applicationErrors.name ? 'error' : ''}
-                      disabled={isAnonymous}
-                    />
+                    <div className="applicant-info">
+                      <strong>{applicantName}</strong>
+                      <p>{isAnonymous ? '기관에는 익명으로 전달됩니다.' : '관리자가 실명으로 확인합니다.'}</p>
+                    </div>
                   </div>
 
                   <div className="form-group">
                     <label htmlFor="contact">
                       연락처
-                      {applicationErrors.contact && (
+                      {applicationErrors.contact ? (
                         <span className="error-message">{applicationErrors.contact}</span>
+                      ) : (
+                        <span className="input-hint">숫자만 입력해주세요</span>
                       )}
                     </label>
                     <input
                       id="contact"
                       type="tel"
                       value={contact}
-                      onChange={(e) => setContact(e.target.value)}
-                      placeholder="010-0000-0000"
+                      onChange={(e) => setContact(stripPhoneNumber(e.target.value))}
+                      placeholder="숫자만 입력 (예: 01012345678)"
                       className={applicationErrors.contact ? 'error' : ''}
+                      inputMode="numeric"
                     />
                   </div>
 
-                  {/* 희망일 */}
-                  {deliveryMethod && (
-                    <div className="form-group">
-                      <label htmlFor="desiredDate">
-                        희망일
-                        {applicationErrors.desiredDate && (
-                          <span className="error-message">{applicationErrors.desiredDate}</span>
-                        )}
-                      </label>
-                      <input
-                        id="desiredDate"
-                        type="date"
-                        min={today}
-                        value={desiredDate}
-                        onChange={(e) => setDesiredDate(e.target.value)}
-                        className={applicationErrors.desiredDate ? 'error' : ''}
-                      />
-                    </div>
-                  )}
-
-                  {/* 메모 */}
-                  {deliveryMethod && (
-                    <div className="form-group">
-                      <label htmlFor="memo">메모</label>
-                      <textarea
-                        id="memo"
-                        value={memo}
-                        onChange={(e) => setMemo(e.target.value)}
-                        placeholder="추가로 전달하고 싶은 내용이 있으면 입력하세요"
-                        rows={4}
-                      />
-                    </div>
-                  )}
+                  {renderShippingFields()}
                 </>
               )}
 
@@ -753,16 +724,6 @@ export default function DonationPage({
                 <label className="upload-button">
                   <input
                     type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => handleImageUpload(e, 'photo')}
-                    style={{ display: 'none' }}
-                  />
-                  사진
-                </label>
-                <label className="upload-button">
-                  <input
-                    type="file"
                     accept="video/*"
                     multiple
                     onChange={(e) => handleImageUpload(e, 'video')}
@@ -781,11 +742,11 @@ export default function DonationPage({
                   이미지
                 </label>
               </div>
-              {images.length > 0 && (
+                {images.length > 0 && (
                 <div className="upload-preview">
                   {images.map(img => (
                     <div key={img.id} className="preview-item">
-                      <img src={img.preview} alt="미리보기" />
+                      <img src={img.dataUrl} alt="미리보기" />
                       <button
                         type="button"
                         className="btn-remove-preview"

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { formatPhoneNumber, stripPhoneNumber } from '../utils/phone'
 
 export default function MyPage({
   user,
@@ -34,7 +35,7 @@ export default function MyPage({
       const forcedNickname = isOrganization ? profile.fullName || user.name : fallbackNickname
       setForm({
         nickname: forcedNickname,
-        phone: profile.phone || '',
+        phone: stripPhoneNumber(profile.phone || ''),
         address: profile.address || '',
         allowEmail: Boolean(profile.allowEmail),
         email: user.email || ''
@@ -67,13 +68,16 @@ export default function MyPage({
     const { name, value, type, checked } = event.target
     setForm(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : name === 'phone' ? stripPhoneNumber(value) : value
     }))
   }
 
   const handleProfileSubmit = event => {
     event.preventDefault()
-    const payload = isOrganization ? { ...form, nickname: memberName } : form
+    const formattedPhone = formatPhoneNumber(form.phone)
+    const payload = isOrganization
+      ? { ...form, nickname: memberName, phone: formattedPhone }
+      : { ...form, phone: formattedPhone }
     const result = onSaveProfile(payload)
     setProfileMessage(result.message || (result.success ? '저장되었습니다.' : '실패했습니다.'))
   }
@@ -171,7 +175,15 @@ export default function MyPage({
             </label>
             <label>
               휴대전화번호
-              <input name="phone" value={form.phone} onChange={handleProfileChange} placeholder="010-0000-0000" />
+              <span className="input-hint">숫자만 입력해주세요</span>
+              <input
+                type="tel"
+                name="phone"
+                value={form.phone}
+                onChange={handleProfileChange}
+                placeholder="숫자만 입력 (예: 01012345678)"
+                inputMode="numeric"
+              />
             </label>
             <label>
               주소
