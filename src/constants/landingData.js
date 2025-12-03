@@ -131,7 +131,13 @@ export const membershipForms = {
       placeholder: '인증코드를 입력하세요',
       actionLabel: '인증 확인'
     },
-    { id: 'phone', label: '전화번호', type: 'tel', placeholder: '010-0000-0000' },
+    {
+      id: 'phone',
+      label: '전화번호',
+      type: 'tel',
+      placeholder: '숫자만 입력 (예: 01012345678)',
+      helper: '숫자만 입력해주세요'
+    },
     {
       id: 'nickname',
       label: '닉네임(선택사항)',
@@ -164,7 +170,13 @@ export const membershipForms = {
       placeholder: '인증코드를 입력하세요',
       actionLabel: '인증 확인'
     },
-    { id: 'phone', label: '전화번호', type: 'tel', placeholder: '010-0000-0000' },
+    {
+      id: 'phone',
+      label: '전화번호',
+      type: 'tel',
+      placeholder: '숫자만 입력 (예: 01012345678)',
+      helper: '숫자만 입력해주세요'
+    },
     {
       id: 'nicknameInfo',
       label: '닉네임',

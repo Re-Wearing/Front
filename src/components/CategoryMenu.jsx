@@ -11,7 +11,7 @@ const getMenuCategories = role => [
     items: [
       { label: '마이페이지', href: '#mypage' },
       {
-        label: role === '일반 회원' ? '내 기부 관리' : '기부 현황 조회',
+        label: '기부 관리',
         href: '/donation-status'
       },
       { label: '배송 조회', href: '#delivery-check' }

@@ -71,6 +71,7 @@ function NotificationRow({ item, onDelete, onMarkRead, onNavigate }) {
       <div className="notification-icon">{icon}</div>
       <div className="notification-content">
         <p className="notification-title">{item.title}</p>
+        {item.description && <p className="notification-description">{item.description}</p>}
         <span className="notification-date">{formattedDate}</span>
       </div>
       <button

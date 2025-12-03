@@ -151,6 +151,12 @@
   gap: 0.3rem;
 }
 
+.mypage-form .input-hint {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: #888;
+}
+
 .mypage-form input {
   border-radius: 10px;
   border: 1px solid #d5d5d5;
