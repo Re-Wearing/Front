@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
-import { mainNavLinks, boardTypes, boardTabs, boardNotices, reviewPosts, requestPosts } from '../constants/landingData'
+import { getNavLinksForRole, boardTypes, boardTabs, boardNotices, reviewPosts, requestPosts } from '../constants/landingData'
 
 // 게시글에 content 필드 추가 (임시)
 const getPostContent = (post) => {
@@ -150,11 +150,13 @@ export default function BoardPage({
     return buttons
   }
 
+  const navLinks = getNavLinksForRole(currentUser?.role)
+
   return (
     <div className="board-page">
       <div className="board-shell">
         <HeaderLanding
-          navLinks={mainNavLinks}
+          navLinks={navLinks}
           onLogoClick={onNavigateHome}
           onLogin={onLogin}
           onNavClick={onNavLink}

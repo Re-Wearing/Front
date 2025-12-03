@@ -1014,6 +1014,18 @@ export default function App() {
       goToBoard()
     } else if (href === '#mypage') {
       goToMyPage()
+    } else if (href === '/admin/manage') {
+      goToMyPage()
+    } else if (href === '/admin/faq') {
+      goToAdminFaq()
+    } else if (href === '/admin/organization-approval') {
+      goToMyPage()
+    } else if (href === '/admin/donation-approval') {
+      goToMain('/main')
+    } else if (href === '/admin/matched-donations') {
+      goToMain('/main')
+    } else if (href === '/admin/delivery') {
+      goToDeliveryCheck()
     } else {
       goToMain('/main')
     }
@@ -1146,6 +1158,7 @@ export default function App() {
           onNotifications={goToNotifications}
           unreadCount={unreadCount}
           onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
         />
       ) : activePage === 'login' ? (
         <LoginPage
@@ -1160,6 +1173,7 @@ export default function App() {
           onForgotId={goToForgotId}
           unreadCount={unreadCount}
           onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
         />
       ) : activePage === 'board' ? (
         <BoardPage
@@ -1371,6 +1385,7 @@ export default function App() {
           onNotifications={goToNotifications}
           unreadCount={unreadCount}
           onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
         />
       ) : activePage === 'donation' ? (
         <DonationPage
@@ -1396,6 +1411,7 @@ export default function App() {
           onNotifications={goToNotifications}
           unreadCount={unreadCount}
           onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
         />
       )}
     </div>
