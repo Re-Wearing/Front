@@ -10,7 +10,10 @@ const getMenuCategories = role => [
     title: '마이페이지',
     items: [
       { label: '마이페이지', href: '#mypage' },
-      { label: '기부 현황 조회', href: '/donation-status' },
+      {
+        label: role === '일반 회원' ? '내 기부 관리' : '기부 현황 조회',
+        href: '/donation-status'
+      },
       { label: '배송 조회', href: '#delivery-check' }
     ]
   },
@@ -44,7 +47,7 @@ export default function CategoryMenu({ isOpen, onClose, onNavClick, role }) {
       <div className="category-menu-overlay" onClick={onClose} />
       <div className="category-menu">
         <div className="category-menu-header">
-          <h3>카테고리</h3>
+          <h3>메뉴</h3>
           <button type="button" className="category-menu-close" onClick={onClose} aria-label="메뉴 닫기">
             ×
           </button>
