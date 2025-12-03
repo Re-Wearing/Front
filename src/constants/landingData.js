@@ -145,6 +145,10 @@ export const membershipForms = {
       actionLabel: '인증 확인'
     },
     { id: 'phone', label: '전화번호', type: 'tel', placeholder: '010-0000-0000' },
+    { id: 'address', label: '주소', type: 'text', placeholder: '주소를 입력하세요' },
+{ id: 'addressDetail', label: '상세주소', type: 'text', placeholder: '상세주소를 입력하세요' },
+{ id: 'zipCode', label: '우편번호', type: 'text', placeholder: '00000' },
+
     {
       id: 'nickname',
       label: '닉네임(선택사항)',
@@ -197,7 +201,11 @@ export const membershipForms = {
       label: '사업자 번호',
       type: 'text',
       placeholder: '000-00-00000'
-    }
+    },
+    { id: 'address', label: '주소', type: 'text', placeholder: '주소를 입력하세요' },
+{ id: 'addressDetail', label: '상세주소', type: 'text', placeholder: '상세주소를 입력하세요' },
+{ id: 'zipCode', label: '우편번호', type: 'text', placeholder: '00000' }
+
   ]
 }
 
@@ -341,4 +349,3 @@ export const requestPosts = [
     date: '2025.10.15'
   }
 ]
-
