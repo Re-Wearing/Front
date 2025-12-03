@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
-import { mainNavLinks, membershipOptions, membershipForms } from '../constants/landingData'
+import { getNavLinksForRole, membershipOptions, membershipForms } from '../constants/landingData'
 
 const EyeIcon = ({ crossed = false }) => (
   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -17,13 +17,15 @@ export default function SignupPage({
   onLogout = () => {},
   onNotifications = () => {},
   unreadCount = 0,
-  onMenu = () => {}
+  onMenu = () => {},
+  currentUser = null
 }) {
   const [membership, setMembership] = useState(membershipOptions[0].value)
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [agreeTerms, setAgreeTerms] = useState(true)
 
   const fields = useMemo(() => membershipForms[membership] ?? [], [membership])
+  const navLinks = getNavLinksForRole(currentUser?.role)
 
   const togglePassword = () => setPasswordVisible(prev => !prev)
 
@@ -31,7 +33,7 @@ export default function SignupPage({
     <div className="signup-page">
       <div className="signup-shell">
         <HeaderLanding
-          navLinks={mainNavLinks}
+          navLinks={navLinks}
           onLogoClick={onNavigateHome}
           onLogin={onGoLogin}
           onNavClick={onNavLink}

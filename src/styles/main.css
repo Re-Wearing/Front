@@ -665,6 +665,106 @@
   padding-bottom: 1rem;
 }
 
+/* Admin Dashboard Banner */
+.admin-dashboard-banner {
+  width: 100%;
+  padding: 2.5rem;
+  border-radius: 32px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 240, 230, 0.95));
+  border: 1px solid rgba(205, 175, 150, 0.3);
+  box-shadow: 0 20px 40px rgba(120, 100, 80, 0.1);
+}
+
+.admin-banner-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.admin-banner-header h1 {
+  margin: 0.5rem 0 0.8rem;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  color: #2f261c;
+}
+
+.admin-banner-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  color: #6b5a47;
+}
+
+.admin-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.admin-action-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 2px solid rgba(205, 175, 150, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.admin-action-card:hover {
+  border-color: #c9b596;
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 8px 24px rgba(150, 120, 90, 0.15);
+  transform: translateY(-2px);
+}
+
+.admin-action-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(248, 234, 214, 0.6);
+  border-radius: 12px;
+}
+
+.admin-action-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.admin-action-content strong {
+  font-size: 1.1rem;
+  color: #2f261c;
+  font-weight: 600;
+}
+
+.admin-action-content p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b5a47;
+  line-height: 1.4;
+}
+
+.admin-banner-footer {
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(205, 175, 150, 0.2);
+  color: #6b5a47;
+  font-size: 0.9rem;
+}
+
+.admin-banner-footer strong {
+  color: #5b3a20;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .hero-section,
   .mission-panel,

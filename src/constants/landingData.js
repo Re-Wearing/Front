@@ -6,22 +6,35 @@ export const mainNavLinks = [
 ]
 
 export const getNavLinksForRole = role => {
+  // 관리자는 관리자 전용 메뉴
   if (role === '관리자 회원') {
     return [
-      { label: '사업소개', href: '/business' },
-      { label: '게시판', href: '#board' },
-      { label: '관리자 페이지', href: '/admin/manage' },
+      { label: '기관 계정 승인', href: '/admin/organization-approval' },
+      { label: '기부 승인 대기', href: '/admin/donation-approval' },
+      { label: '회원 목록', href: '/admin/manage' },
       { label: 'FAQ 관리', href: '/admin/faq' }
     ]
   }
   if (role === '기관 회원') {
     return [
-      { label: '사업소개', href: '/business' },
-      { label: '게시판', href: '#board' },
+      { label: '기부 현황 조회', href: '/donation-status' },
       { label: '배송 조회', href: '#delivery-check' },
-      { label: '기부 현황', href: '/donation-status' }
+      { label: '게시판', href: '#board' },
+      { label: '마이페이지', href: '#mypage' },
+      { label: 'FAQ', href: '#faq' }
     ]
   }
+  if (role === '일반 회원') {
+    // 일반 회원 메뉴
+    return [
+      { label: '기부하기', href: '#donation' },
+      { label: '기부 현황 조회', href: '/donation-status' },
+      { label: '게시판', href: '#board' },
+      { label: '마이페이지', href: '#mypage' },
+      { label: 'FAQ', href: '#faq' }
+    ]
+  }
+  // 로그아웃 상태 또는 role이 없는 경우 기존 메뉴
   return mainNavLinks
 }
 
