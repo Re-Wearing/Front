@@ -1,5 +1,5 @@
 import HeaderLanding from "../components/HeaderLanding"
-import { mainNavLinks } from "../constants/landingData"
+import { getNavLinksForRole } from "../constants/landingData"
 import "../styles/business-intro.css"
 
 export default function BusinessIntroPage({
@@ -10,14 +10,17 @@ export default function BusinessIntroPage({
   onLogout,
   onNotifications,
   unreadCount,
-  onMenu = () => {}
+  onMenu = () => {},
+  currentUser = null
 }) {
+  const navLinks = getNavLinksForRole(currentUser?.role)
+
   return (
     <section className="main-page business-page">
       <div className="main-shell">
 
         <HeaderLanding
-          navLinks={mainNavLinks}
+          navLinks={navLinks}
           onLogoClick={onNavigateHome}
           onNavClick={onNavLink}
           onLogin={onLogin}

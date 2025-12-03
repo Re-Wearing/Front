@@ -6,22 +6,35 @@ export const mainNavLinks = [
 ]
 
 export const getNavLinksForRole = role => {
+  // 관리자는 관리자 전용 메뉴
   if (role === '관리자 회원') {
     return [
-      { label: '사업소개', href: '/business' },
-      { label: '게시판', href: '#board' },
-      { label: '관리자 페이지', href: '/admin/manage' },
+      { label: '기관 계정 승인', href: '/admin/organization-approval' },
+      { label: '기부 승인 대기', href: '/admin/donation-approval' },
+      { label: '회원 목록', href: '/admin/manage' },
       { label: 'FAQ 관리', href: '/admin/faq' }
     ]
   }
   if (role === '기관 회원') {
     return [
-      { label: '사업소개', href: '/business' },
-      { label: '게시판', href: '#board' },
+      { label: '기부 현황 조회', href: '/donation-status' },
       { label: '배송 조회', href: '#delivery-check' },
-      { label: '기부 현황', href: '/donation-status' }
+      { label: '게시판', href: '#board' },
+      { label: '마이페이지', href: '#mypage' },
+      { label: 'FAQ', href: '#faq' }
     ]
   }
+  if (role === '일반 회원') {
+    // 일반 회원 메뉴
+    return [
+      { label: '기부하기', href: '#donation' },
+      { label: '기부 현황 조회', href: '/donation-status' },
+      { label: '게시판', href: '#board' },
+      { label: '마이페이지', href: '#mypage' },
+      { label: 'FAQ', href: '#faq' }
+    ]
+  }
+  // 로그아웃 상태 또는 role이 없는 경우 기존 메뉴
   return mainNavLinks
 }
 
@@ -131,13 +144,11 @@ export const membershipForms = {
       placeholder: '인증코드를 입력하세요',
       actionLabel: '인증 확인'
     },
-    {
-      id: 'phone',
-      label: '전화번호',
-      type: 'tel',
-      placeholder: '숫자만 입력 (예: 01012345678)',
-      helper: '숫자만 입력해주세요'
-    },
+    { id: 'phone', label: '전화번호', type: 'tel', placeholder: '숫자만 입력 (예: 01012345678)', helper: '숫자만 입력해주세요' },
+    { id: 'address', label: '주소', type: 'text', placeholder: '주소를 입력하세요' },
+{ id: 'addressDetail', label: '상세주소', type: 'text', placeholder: '상세주소를 입력하세요' },
+{ id: 'zipCode', label: '우편번호', type: 'text', placeholder: '00000' },
+
     {
       id: 'nickname',
       label: '닉네임(선택사항)',
@@ -196,7 +207,11 @@ export const membershipForms = {
       label: '사업자 번호',
       type: 'text',
       placeholder: '000-00-00000'
-    }
+    },
+    { id: 'address', label: '주소', type: 'text', placeholder: '주소를 입력하세요' },
+{ id: 'addressDetail', label: '상세주소', type: 'text', placeholder: '상세주소를 입력하세요' },
+{ id: 'zipCode', label: '우편번호', type: 'text', placeholder: '00000' }
+
   ]
 }
 
@@ -340,4 +355,3 @@ export const requestPosts = [
     date: '2025.10.15'
   }
 ]
-

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
-import { mainNavLinks } from '../constants/landingData'
+import { getNavLinksForRole } from '../constants/landingData'
 
 const EyeIcon = ({ crossed = false }) => (
   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -20,12 +20,14 @@ export default function LoginPage({
   onForgotPassword = () => {},
   onForgotId = () => {},
   unreadCount = 0,
-  onMenu = () => {}
+  onMenu = () => {},
+  currentUser = null
 }) {
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
   const [form, setForm] = useState({ username: '', password: '' })
   const [message, setMessage] = useState('')
+  const navLinks = getNavLinksForRole(currentUser?.role)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -68,7 +70,7 @@ export default function LoginPage({
     <div className="login-page">
       <div className="auth-shell">
         <HeaderLanding
-          navLinks={mainNavLinks}
+          navLinks={navLinks}
           onLogoClick={onNavigateHome}
           onLogin={() => {}}
           onNavClick={onNavLink}

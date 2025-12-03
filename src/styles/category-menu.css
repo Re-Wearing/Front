@@ -56,10 +56,14 @@
 .category-menu-content {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
   padding: 2rem;
   overflow-y: auto;
+}
+
+.category-menu-content.admin-menu {
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .category-menu-column {

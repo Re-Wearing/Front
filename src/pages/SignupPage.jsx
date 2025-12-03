@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
-import { mainNavLinks, membershipOptions, membershipForms } from '../constants/landingData'
+import { getNavLinksForRole, membershipOptions, membershipForms } from '../constants/landingData'
 
 const EyeIcon = ({ crossed = false }) => (
   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -17,13 +17,16 @@ export default function SignupPage({
   onLogout = () => {},
   onNotifications = () => {},
   unreadCount = 0,
-  onMenu = () => {}
+  onMenu = () => {},
+  currentUser = null
 }) {
   const [membership, setMembership] = useState(membershipOptions[0].value)
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [agreeTerms, setAgreeTerms] = useState(true)
+  const [formData, setFormData] = useState({});
 
   const fields = useMemo(() => membershipForms[membership] ?? [], [membership])
+  const navLinks = getNavLinksForRole(currentUser?.role)
 
   const togglePassword = () => setPasswordVisible(prev => !prev)
 
@@ -31,7 +34,7 @@ export default function SignupPage({
     <div className="signup-page">
       <div className="signup-shell">
         <HeaderLanding
-          navLinks={mainNavLinks}
+          navLinks={navLinks}
           onLogoClick={onNavigateHome}
           onLogin={onGoLogin}
           onNavClick={onNavLink}
@@ -71,11 +74,19 @@ export default function SignupPage({
                     <label key={field.id} className="form-field" htmlFor={`${field.id}-${membership}`}>
                       <span>{field.label}</span>
                       <div className="password-field">
-                        <input
-                          id={`${field.id}-${membership}`}
-                          type={passwordVisible ? 'text' : 'password'}
-                          placeholder={field.placeholder}
-                        />
+                      <input
+  id={`${field.id}-${membership}`}
+  type={passwordVisible ? 'text' : 'password'}
+  placeholder={field.placeholder}
+  value={formData[`${field.id}-${membership}`] || ""}
+  onChange={(e) =>
+    setFormData({
+      ...formData,
+      [`${field.id}-${membership}`]: e.target.value,
+    })
+  }
+/>
+
                         <button
                           type="button"
                           className={`password-eye ${passwordVisible ? 'active' : ''}`}
@@ -96,14 +107,21 @@ export default function SignupPage({
                   <label key={field.id} className="form-field" htmlFor={inputId}>
                     <span>{field.label}</span>
                     <div className="form-field-control">
-                      <input
-                        id={inputId}
-                        type={field.type}
-                        placeholder={field.placeholder}
-                        readOnly={isReadOnly}
-                        disabled={isReadOnly}
-                        value={isReadOnly ? field.readOnlyValue || field.placeholder : undefined}
-                      />
+                    <input
+  id={inputId}
+  type={field.type}
+  placeholder={field.placeholder}
+  readOnly={isReadOnly}
+  disabled={isReadOnly}
+  value={formData[inputId] || ""}
+  onChange={(e) =>
+    setFormData({
+      ...formData,
+      [inputId]: e.target.value,
+    })
+  }
+/>
+
                       {field.actionLabel ? (
                         <button type="button" className="inline-action">
                           {field.actionLabel}
@@ -126,9 +144,15 @@ export default function SignupPage({
                 </span>
               </label>
 
-              <button type="button" className="submit-button" disabled={!agreeTerms}>
-                CREATE AN ACCOUNT
-              </button>
+              <button
+  type="button"
+  className="submit-button"
+  disabled={!agreeTerms}
+  onClick={() => onSignupSubmit(formData, membership)}
+>
+  CREATE AN ACCOUNT
+</button>
+
 
               <p className="signup-footer">
                 이미 계정이 있으신가요?{' '}

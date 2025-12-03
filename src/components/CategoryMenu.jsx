@@ -1,33 +1,93 @@
-const getMenuCategories = role => [
-  {
-    title: '기부하기',
-    items: [
-      { label: '기부하기', href: '#donation' },
-      { label: '게시판', href: '#board' }
+const getMenuCategories = role => {
+  if (role === '관리자 회원') {
+    return [
+      {
+        title: '승인 관리',
+        items: [
+          { label: '기관 계정 승인', href: '/admin/organization-approval' },
+          { label: '기부 승인 대기', href: '/admin/donation-approval' }
+        ]
+      },
+      {
+        title: '회원 관리',
+        items: [
+          { label: '회원 목록', href: '/admin/manage' }
+        ]
+      },
+      {
+        title: 'FAQ',
+        items: [
+          { label: 'FAQ 관리', href: '/admin/faq' }
+        ]
+      },
+      {
+        title: '기부 관리',
+        items: [
+          { label: '매칭된 기부 관리', href: '/admin/matched-donations' },
+          { label: '배송 관리', href: '/admin/delivery' }
+        ]
+      }
     ]
-  },
-  {
-    title: '마이페이지',
-    items: [
-      { label: '마이페이지', href: '#mypage' },
+  }
+  
+  if (role === '기관 회원') {
+    return [
       {
         label: '기부 관리',
         href: '/donation-status'
       },
-      { label: '배송 조회', href: '#delivery-check' }
+      {
+        title: '게시판',
+        items: [
+          { label: '게시판', href: '#board' }
+        ]
+      },
+      {
+        title: '마이페이지',
+        items: [
+          { label: '마이페이지', href: '#mypage' }
+        ]
+      },
+      {
+        title: 'FAQ',
+        items: [
+          { label: 'FAQ', href: '/faq', action: 'FaqPage' },
+          { label: '문의하기', href: '/inquiry', action: 'InquiryPage' }
+        ]
+      }
     ]
-  },
-  {
-    title: 'FAQ',
-    items:
-      role === '관리자 회원'
-        ? [{ label: 'FAQ 관리', href: '/admin/faq' }]
-        : [
-            { label: 'FAQ', href: '/faq', action: 'FaqPage' },
-            { label: '문의하기', href: '/inquiry', action: 'InquiryPage' }
-          ]
   }
-]
+  
+  return [
+    {
+      title: '기부하기',
+      items: [
+        { label: '기부하기', href: '#donation' },
+        { label: '배송 조회', href: '#delivery-check' }
+      ]
+    },
+    {
+      title: '게시판',
+      items: [
+        { label: '게시판', href: '#board' }
+      ]
+    },
+    {
+      title: '마이페이지',
+      items: [
+        { label: '마이페이지', href: '#mypage' },
+        { label: '기부 현황 조회', href: '/donation-status' }
+      ]
+    },
+    {
+      title: 'FAQ',
+      items: [
+        { label: 'FAQ', href: '/faq', action: 'FaqPage' },
+        { label: '문의하기', href: '/inquiry', action: 'InquiryPage' }
+      ]
+    }
+  ]
+}
 
 export default function CategoryMenu({ isOpen, onClose, onNavClick, role }) {
   if (!isOpen) return null
@@ -52,7 +112,7 @@ export default function CategoryMenu({ isOpen, onClose, onNavClick, role }) {
             ×
           </button>
         </div>
-        <div className="category-menu-content">
+        <div className={`category-menu-content ${role === '관리자 회원' ? 'admin-menu' : ''}`}>
           {menuCategories.map((category, index) => (
             <div key={index} className="category-menu-column">
               <h4 className="category-menu-column-title">{category.title}</h4>

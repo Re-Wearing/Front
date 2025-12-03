@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
-import { mainNavLinks, reviewPosts, requestPosts, boardNotices } from '../constants/landingData'
+import { getNavLinksForRole, reviewPosts, requestPosts, boardNotices } from '../constants/landingData'
 import '../styles/board-detail.css'
 
 export default function BoardDetailPage({
@@ -155,11 +155,13 @@ export default function BoardDetailPage({
     }
   }
 
+  const navLinks = getNavLinksForRole(currentUser?.role)
+
   return (
     <div className="board-detail-page">
       <div className="board-detail-shell">
         <HeaderLanding
-          navLinks={mainNavLinks}
+          navLinks={navLinks}
           onLogoClick={onNavigateHome}
           onLogin={onLogin}
           onNavClick={onNavLink}
