@@ -404,6 +404,8 @@ const LANDING_KEY = 'rewearLandingSeen'
 const ADMIN_INQUIRIES_KEY = 'rewearAdminInquiries'
 const PENDING_ORGS_KEY = 'rewearPendingOrganizations'
 const DONATIONS_KEY = 'rewearDonations'
+const BOARD_POSTS_KEY = 'rewearBoardPosts'
+const BOARD_NOTICES_KEY = 'rewearBoardNotices'
 
 const hasSeenLanding = () => {
   if (typeof window === 'undefined') return false
@@ -436,6 +438,11 @@ export default function App() {
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS)
   const [accounts, setAccounts] = useState(INITIAL_ACCOUNTS)
   const [profiles, setProfiles] = useState(INITIAL_PROFILES)
+  const getUserDisplayName = username => {
+    if (!username) return '익명'
+    const profile = profiles[username]
+    return profile?.nickname || profile?.fullName || accounts[username]?.name || username
+  }
   const [shipments] = useState(() => {
     if (typeof window === 'undefined') return INITIAL_SHIPMENTS
     const stored = window.sessionStorage.getItem('rewearShipments')
@@ -521,12 +528,53 @@ export default function App() {
     }
     return findOrganizationUsernameByName(identifier)
   }
-  const [boardPosts, setBoardPosts] = useState({ review: [], request: [] }) // 작성된 게시글 관리
+  const loadStoredBoardPosts = () => {
+    if (typeof window === 'undefined') return { review: [], request: [] }
+    const stored = window.sessionStorage.getItem(BOARD_POSTS_KEY)
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        return {
+          review: Array.isArray(parsed.review) ? parsed.review : [],
+          request: Array.isArray(parsed.request) ? parsed.request : []
+        }
+      } catch (error) {
+        console.warn('Failed to parse stored board posts', error)
+      }
+    }
+    return { review: [], request: [] }
+  }
+  const loadStoredBoardNotices = () => {
+    if (typeof window === 'undefined') return []
+    const stored = window.sessionStorage.getItem(BOARD_NOTICES_KEY)
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        return Array.isArray(parsed) ? parsed : []
+      } catch (error) {
+        console.warn('Failed to parse stored board notices', error)
+      }
+    }
+    return []
+  }
+  const [boardPosts, setBoardPosts] = useState(loadStoredBoardPosts) // 작성된 게시글 관리
+  const [boardNoticesDynamic, setBoardNoticesDynamic] = useState(loadStoredBoardNotices)
   const [boardViews, setBoardViews] = useState({}) // 게시글 조회수 관리 { 'postId': views }
   const [boardWriteType, setBoardWriteType] = useState('review')
   const [selectedBoardType, setSelectedBoardType] = useState('all')
   const [selectedPostId, setSelectedPostId] = useState(null)
   const [selectedPostType, setSelectedPostType] = useState('review')
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(BOARD_POSTS_KEY, JSON.stringify(boardPosts))
+    }
+  }, [boardPosts])
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(BOARD_NOTICES_KEY, JSON.stringify(boardNoticesDynamic))
+    }
+  }, [boardNoticesDynamic])
+  const [adminPanel, setAdminPanel] = useState('members')
   const updatePath = (path, { replace = false } = {}) => {
     setCurrentPath(path)
     if (typeof window === 'undefined' || !window.history) return
@@ -627,42 +675,67 @@ export default function App() {
     else if (replace) updatePath('/board', { replace: true })
   }
 
-  const goToBoardWrite = (options = {}, boardType = 'review') => {
-    const { push = true, replace = false } = options
+  const goToBoardWrite = (options = {}) => {
+    const { push = true, replace = false, boardType = 'review' } = options
     if (!currentUser) {
       goToLogin(options)
       return
     }
-    // 사용자 역할에 따라 게시판 타입 제한
     const userRole = currentUser?.role || ''
-    const isOrganization = userRole === '기관 회원' || userRole === '관리자 회원'
-    const allowedBoardType = isOrganization ? 'request' : 'review'
-    setBoardWriteType(allowedBoardType)
+    const canWriteReview = ['일반 회원', '기관 회원', '관리자 회원'].includes(userRole)
+    const canWriteRequest = userRole === '기관 회원' || userRole === '관리자 회원'
+    if (boardType === 'request' && !canWriteRequest) {
+      window.alert('요청 게시판은 기관 회원만 작성할 수 있습니다.')
+      return
+    }
+    if (boardType === 'review' && !canWriteReview) {
+      window.alert('게시글 작성 권한이 없습니다.')
+      return
+    }
+    setBoardWriteType(boardType === 'request' ? 'request' : 'review')
     setShowLanding(false)
     setActivePage('boardWrite')
     if (push) updatePath('/board/write', { replace })
     else if (replace) updatePath('/board/write', { replace: true })
   }
 
-  const handleBoardPostSubmit = (postData) => {
-    const newPost = {
-      id: Date.now(),
+  const handleBoardPostSubmit = postData => {
+    const authorUsername = currentUser?.username || 'guest'
+    const displayName = getUserDisplayName(authorUsername)
+    const timestamp = Date.now()
+    const commonPost = {
+      id: timestamp,
       title: postData.title,
       content: postData.content,
-      writer: currentUser?.username || postData.writer,
+      writer: displayName,
+      author: authorUsername,
+      authorRole: currentUser?.role,
+      boardType: postData.boardType,
       views: 0,
       date: new Date().toLocaleDateString('ko-KR', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
-      }).replace(/\./g, '.').replace(/\s/g, '')
+      })
+        .replace(/\./g, '.')
+        .replace(/\s/g, '')
     }
-    
+
+    if (currentUser?.role === '관리자 회원') {
+      const noticePost = {
+        ...commonPost,
+        id: `notice-${timestamp}`,
+        noticeType: postData.boardType
+      }
+      setBoardNoticesDynamic(prev => [noticePost, ...prev])
+      return { success: true, notice: true }
+    }
+
     setBoardPosts(prev => ({
       ...prev,
-      [postData.boardType]: [newPost, ...(prev[postData.boardType] || [])]
+      [postData.boardType]: [commonPost, ...(prev[postData.boardType] || [])]
     }))
-    
+
     return { success: true }
   }
 
@@ -788,7 +861,7 @@ export default function App() {
   
 
   const goToMyPage = (options = {}, userOverride) => {
-    const { push = true, replace = false } = options
+    const { push = true, replace = false, panel } = options
     const targetUser = userOverride || currentUser
     if (!targetUser) {
       goToLogin(options)
@@ -796,9 +869,12 @@ export default function App() {
     }
     setShowLanding(false)
     if (targetUser.role === '관리자 회원') {
+      const nextPanel = panel || adminPanel || 'members'
+      setAdminPanel(nextPanel)
       setActivePage('adminManage')
-      if (push) updatePath('/admin/manage', { replace })
-      else if (replace) updatePath('/admin/manage', { replace: true })
+      const adminPath = nextPanel === 'members' ? '/admin/manage' : `/admin/manage/${nextPanel}`
+      if (push) updatePath(adminPath, { replace })
+      else if (replace) updatePath(adminPath, { replace: true })
     } else {
       setActivePage('mypage')
       if (push) updatePath('/mypage', { replace })
@@ -861,6 +937,12 @@ export default function App() {
   const handleLoginSubmit = (username, password) => {
     const normalizedId = username.trim().toLowerCase()
     const trimmedPw = password.trim()
+    const pendingOrg = pendingOrganizations.find(
+      req => req.username === normalizedId && req.status !== 'approved'
+    )
+    if (pendingOrg) {
+      return { success: false, reason: 'orgPending' }
+    }
     const account = accounts[normalizedId]
     if (account && account.password === trimmedPw) {
       const current = { username: normalizedId, ...account }
@@ -1212,7 +1294,7 @@ export default function App() {
       setAccounts(prev => ({
         ...prev,
         [request.username]: {
-          password: 'organ123!',
+          password: request.password || 'organ123!',
           role: '기관 회원',
           name: request.organizationName,
           email: request.email
@@ -1489,37 +1571,79 @@ export default function App() {
     return true
   }
 
-  const handleSignup = (formData, membership) => {
-    const username = formData[`username-${membership}`];
-    const password = formData[`password-${membership}`];
-    const fullName = formData[`fullName-${membership}`] 
-                  || formData[`manager-${membership}`]; // 기관은 manager가 이름 역할
-    const email = formData[`email-${membership}`];
-    const phone = formData[`phone-${membership}`];
-    const nickname = formData[`nickname-${membership}`] 
-                  || formData[`orgName-${membership}`];
-    const address = formData[`address-${membership}`];
-    const addressDetail = formData[`addressDetail-${membership}`];
-    const postalCode = formData[`postalCode-${membership}`];
-  
-    // 중복 아이디 체크
-    if (accounts[username]) {
-      alert("이미 존재하는 아이디입니다!");
-      return;
+  const handleSignup = (formData, membership, options = {}) => {
+    const { emailVerified = false } = options
+    const username = (formData[`username-${membership}`] || '').trim().toLowerCase()
+    const password = (formData[`password-${membership}`] || '').trim()
+    const fullName =
+      (formData[`fullName-${membership}`] || '').trim() ||
+      (formData[`manager-${membership}`] || '').trim()
+    const email = (formData[`email-${membership}`] || '').trim()
+    const phone = (formData[`phone-${membership}`] || '').trim()
+    const nickname =
+      (formData[`nickname-${membership}`] || '').trim() ||
+      (formData[`orgName-${membership}`] || '').trim() ||
+      fullName
+    const address = formData[`address-${membership}`] || ''
+    const addressDetail = formData[`addressDetail-${membership}`] || ''
+    const postalCode =
+      formData[`zipCode-${membership}`] ||
+      formData[`postalCode-${membership}`] ||
+      ''
+
+    if (!username || !password || !fullName || !email) {
+      window.alert('필수 항목을 입력해주세요.')
+      return
     }
-  
-    // 1) accounts에 사용자 추가
+    if (!emailVerified) {
+      window.alert('이메일 인증을 완료해주세요.')
+      return
+    }
+    if (accounts[username]) {
+      window.alert('이미 존재하는 아이디입니다!')
+      return
+    }
+    const isPendingUsername = pendingOrganizations.some(
+      req => req.username === username && req.status !== 'approved'
+    )
+    if (isPendingUsername) {
+      window.alert('해당 아이디는 승인 대기 중입니다.')
+      return
+    }
+
+    if (membership === 'organization') {
+      const request = {
+        id: `org-req-${Date.now()}`,
+        username,
+        organizationName: formData[`orgName-${membership}`] || nickname,
+        contactName: fullName,
+        email,
+        phone,
+        address,
+        addressDetail,
+        postalCode,
+        submittedAt: new Date().toISOString(),
+        status: 'pending',
+        memo: formData[`memo-${membership}`] || '',
+        rejectionReason: '',
+        password
+      }
+      setPendingOrganizations(prev => [request, ...prev])
+      window.alert('기관 가입 신청이 접수되었습니다. 관리자 승인 후 로그인 가능합니다.')
+      goToLogin()
+      return
+    }
+
     setAccounts(prev => ({
       ...prev,
       [username]: {
         password,
-        role: membership === "general" ? "일반 회원" : "기관 회원",
+        role: '일반 회원',
         name: fullName,
         email
       }
-    }));
-  
-    // 2) profiles에 프로필 정보 저장
+    }))
+
     setProfiles(prev => ({
       ...prev,
       [username]: {
@@ -1532,11 +1656,11 @@ export default function App() {
         allowEmail: true,
         useAnonymousName: false
       }
-    }));
-  
-    alert("회원가입이 완료되었습니다!");
-    goToLogin();
-  };
+    }))
+
+    alert('회원가입이 완료되었습니다!')
+    goToLogin()
+  }
   
   const handleNotificationNavigate = notification => {
     if (!notification?.target) return
@@ -1601,18 +1725,18 @@ export default function App() {
       goToBoard()
     } else if (href === '#mypage') {
       goToMyPage()
-    } else if (href === '/admin/manage') {
-      goToMyPage()
+    } else if (href === '/admin/manage' || href === '/admin/manage/members') {
+      goToMyPage({ panel: 'members' })
+    } else if (href === '/admin/manage/orgs' || href === '/admin/organization-approval') {
+      goToMyPage({ panel: 'orgs' })
+    } else if (href === '/admin/manage/items' || href === '/admin/donation-approval') {
+      goToMyPage({ panel: 'items' })
+    } else if (href === '/admin/manage/matching' || href === '/admin/matched-donations') {
+      goToMyPage({ panel: 'matching' })
     } else if (href === '/admin/faq') {
       goToAdminFaq()
-    } else if (href === '/admin/organization-approval') {
-      goToMyPage()
-    } else if (href === '/admin/donation-approval') {
-      goToMain('/main')
-    } else if (href === '/admin/matched-donations') {
-      goToMain('/main')
     } else if (href === '/admin/delivery') {
-      goToDeliveryCheck()
+      goToMyPage({ panel: 'items' })
     } else {
       goToMain('/main')
     }
@@ -1677,7 +1801,23 @@ export default function App() {
         goToMyPage({ push: false, replace: true }, userOverride)
         break
       case '/admin/manage':
-        goToMyPage({ push: false, replace: true }, userOverride ?? currentUser)
+        goToMyPage({ push: false, replace: true, panel: 'members' }, userOverride ?? currentUser)
+        break
+      case '/admin/manage/members':
+        goToMyPage({ push: false, replace: true, panel: 'members' }, userOverride ?? currentUser)
+        break
+      case '/admin/manage/orgs':
+      case '/admin/organization-approval':
+        goToMyPage({ push: false, replace: true, panel: 'orgs' }, userOverride ?? currentUser)
+        break
+      case '/admin/manage/items':
+      case '/admin/donation-approval':
+      case '/admin/delivery':
+        goToMyPage({ push: false, replace: true, panel: 'items' }, userOverride ?? currentUser)
+        break
+      case '/admin/manage/matching':
+      case '/admin/matched-donations':
+        goToMyPage({ push: false, replace: true, panel: 'matching' }, userOverride ?? currentUser)
         break
       case '/notification':
         goToNotifications({ push: false, replace: true }, userOverride)
@@ -1780,6 +1920,7 @@ export default function App() {
           boardPosts={boardPosts}
           boardViews={boardViews}
           onGoToBoardDetail={goToBoardDetail}
+          extraNotices={boardNoticesDynamic}
         />
       ) : activePage === 'boardDetail' ? (
         <BoardDetailPage
@@ -1799,6 +1940,7 @@ export default function App() {
           boardViews={boardViews}
           onUpdateViews={handleBoardViewsUpdate}
           onDeletePost={handleBoardPostDelete}
+          notices={boardNoticesDynamic}
         />
       ) : activePage === 'boardWrite' ? (
         <BoardWritePage
@@ -1850,6 +1992,8 @@ export default function App() {
           onResetPassword={handleAdminPasswordReset}
           onDeleteUser={handleAdminDeleteUser}
           onNavigateHome={goToMain}
+          initialPanel={adminPanel}
+          onPanelChange={setAdminPanel}
         />
       ) : activePage === 'inquiryAnswers' ? (
         <InquiryAnswersPage
@@ -1862,6 +2006,7 @@ export default function App() {
           onBackToFaq={() => goToFaq()}
           inquiries={userInquiries}
           onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
         />
       ) : activePage === 'adminFaq' ? (
         <AdminFaqPage
@@ -1875,6 +2020,7 @@ export default function App() {
           adminInquiries={adminInquiries}
           onSubmitAnswer={handleAnswerSubmit}
           onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
         />
       ) : activePage === 'forgotPassword' ? (
         <ForgotPasswordPage
@@ -1915,6 +2061,7 @@ export default function App() {
           answeredCount={answeredInquiryCount}
           onViewAnswers={() => goToInquiryAnswers()}
           onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
         />
       ) : activePage === 'inquiry' ? (
         <InquiryPage
@@ -1927,6 +2074,7 @@ export default function App() {
           unreadCount={unreadCount}
           onSubmitInquiry={handleInquirySubmit}
           onMenu={() => setIsMenuOpen(true)}
+          currentUser={currentUser}
         />
       ) : activePage === 'donationStatus' ? (
         <DonationStatusPage

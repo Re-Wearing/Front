@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
-import { mainNavLinks } from '../constants/landingData'
 import { formatPhoneNumber, stripPhoneNumber } from '../utils/phone'
 
 const ITEM_CATEGORIES = [
@@ -334,7 +333,7 @@ export default function DonationPage({
       <section className="main-page donation-page">
         <div className="main-shell donation-shell">
           <HeaderLanding
-            navLinks={mainNavLinks}
+            role={currentUser?.role}
             onLogoClick={onNavigateHome}
             onNavClick={onNavLink}
             isLoggedIn={isLoggedIn}
@@ -521,7 +520,7 @@ export default function DonationPage({
     <section className="main-page donation-page">
       <div className="main-shell donation-shell">
         <HeaderLanding
-          navLinks={mainNavLinks}
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onNavClick={onNavLink}
           isLoggedIn={isLoggedIn}

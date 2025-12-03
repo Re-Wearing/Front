@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
-import { getNavLinksForRole, boardTypes, boardTabs, boardNotices, reviewPosts, requestPosts } from '../constants/landingData'
+import { getNavLinksForRole, boardTabs, boardNotices, reviewPosts, requestPosts } from '../constants/landingData'
 
 // 게시글에 content 필드 추가 (임시)
 const getPostContent = (post) => {
@@ -21,7 +21,8 @@ export default function BoardPage({
   selectedBoardType: propSelectedBoardType = null,
   boardPosts = { review: [], request: [] },
   boardViews = {},
-  onGoToBoardDetail = () => {}
+  onGoToBoardDetail = () => {},
+  extraNotices = []
 }) {
   const [selectedBoardType, setSelectedBoardType] = useState('all')
   const [selectedSort, setSelectedSort] = useState('latest')
@@ -151,12 +152,14 @@ export default function BoardPage({
   }
 
   const navLinks = getNavLinksForRole(currentUser?.role)
+  const combinedNotices = [...extraNotices, ...boardNotices]
 
   return (
     <div className="board-page">
       <div className="board-shell">
         <HeaderLanding
           navLinks={navLinks}
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onLogin={onLogin}
           onNavClick={onNavLink}
@@ -247,7 +250,8 @@ export default function BoardPage({
               if (!isLoggedIn) {
                 onLogin()
               } else {
-                onGoToBoardWrite({}, selectedBoardType === 'all' ? 'review' : selectedBoardType)
+                const targetType = selectedBoardType === 'request' ? 'request' : 'review'
+                onGoToBoardWrite({ boardType: targetType })
               }
             }}
           >
@@ -264,7 +268,7 @@ export default function BoardPage({
             <span>날짜</span>
           </div>
 
-          {boardNotices.map(notice => (
+          {combinedNotices.map(notice => (
             <div 
               key={notice.id} 
               className="board-row notice"
@@ -290,9 +294,15 @@ export default function BoardPage({
           ) : (
             currentPosts.map((post, index) => {
               // 게시글 타입 결정 (reviewPosts에 있으면 review, requestPosts에 있으면 request)
-              const postType = reviewPosts.some(p => p.id === post.id) ? 'review' : 
-                              requestPosts.some(p => p.id === post.id) ? 'request' :
-                              boardPosts.review.some(p => p.id === post.id) ? 'review' : 'request'
+              const postType =
+                post.boardType ||
+                (reviewPosts.some(p => p.id === post.id)
+                  ? 'review'
+                  : requestPosts.some(p => p.id === post.id)
+                  ? 'request'
+                  : boardPosts.review?.some(p => p.id === post.id)
+                  ? 'review'
+                  : 'request')
               
               return (
                 <div 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
 import { getNavLinksForRole, membershipOptions, membershipForms } from '../constants/landingData'
 
@@ -18,23 +18,101 @@ export default function SignupPage({
   onNotifications = () => {},
   unreadCount = 0,
   onMenu = () => {},
-  currentUser = null
+  currentUser = null,
+  onSignupSubmit = () => {}
 }) {
   const [membership, setMembership] = useState(membershipOptions[0].value)
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [agreeTerms, setAgreeTerms] = useState(true)
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({})
+  const [emailCodes, setEmailCodes] = useState({})
+  const [verifiedEmails, setVerifiedEmails] = useState({})
+  const [addressReady, setAddressReady] = useState(false)
 
   const fields = useMemo(() => membershipForms[membership] ?? [], [membership])
   const navLinks = getNavLinksForRole(currentUser?.role)
 
   const togglePassword = () => setPasswordVisible(prev => !prev)
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (window.daum?.Postcode) {
+      setAddressReady(true)
+      return
+    }
+    const script = document.createElement('script')
+    script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
+    script.async = true
+    script.onload = () => setAddressReady(true)
+    document.body.appendChild(script)
+    return () => {
+      document.body.removeChild(script)
+    }
+  }, [])
+
+  const getFieldKey = id => `${id}-${membership}`
+
+  const handleChange = (key, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [key]: value
+    }))
+    if (key.startsWith('email-')) {
+      setVerifiedEmails(prev => ({ ...prev, [membership]: false }))
+    }
+  }
+
+  const handleSendEmailCode = () => {
+    const emailKey = getFieldKey('email')
+    const email = formData[emailKey]?.trim()
+    if (!email) {
+      window.alert('이메일을 먼저 입력해주세요.')
+      return
+    }
+    const code = String(Math.floor(100000 + Math.random() * 900000))
+    setEmailCodes(prev => ({ ...prev, [membership]: code }))
+    setVerifiedEmails(prev => ({ ...prev, [membership]: false }))
+    window.alert(`인증코드가 발송되었습니다.\n테스트용 코드: ${code}`)
+  }
+
+  const handleVerifyEmailCode = () => {
+    const inputCode = formData[getFieldKey('emailCode')]?.trim()
+    if (!inputCode) {
+      window.alert('인증코드를 입력해주세요.')
+      return
+    }
+    if (inputCode !== emailCodes[membership]) {
+      window.alert('인증코드가 일치하지 않습니다.')
+      return
+    }
+    setVerifiedEmails(prev => ({ ...prev, [membership]: true }))
+    window.alert('이메일 인증이 완료되었습니다.')
+  }
+
+  const handleAddressSearch = () => {
+    if (!addressReady || !window.daum?.Postcode) {
+      window.alert('주소 검색 모듈을 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
+      return
+    }
+    new window.daum.Postcode({
+      oncomplete: data => {
+        const zonecode = data.zonecode
+        const selectedAddress = data.roadAddress || data.jibunAddress
+        setFormData(prev => ({
+          ...prev,
+          [getFieldKey('zipCode')]: zonecode,
+          [getFieldKey('address')]: selectedAddress
+        }))
+      }
+    }).open()
+  }
+
   return (
     <div className="signup-page">
       <div className="signup-shell">
         <HeaderLanding
           navLinks={navLinks}
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onLogin={onGoLogin}
           onNavClick={onNavLink}
@@ -101,7 +179,51 @@ export default function SignupPage({
                 }
 
                 const inputId = `${field.id}-${membership}`
-                const isReadOnly = Boolean(field.readOnly)
+                const isReadOnly =
+                  field.readOnly ||
+                  field.id === 'zipCode' ||
+                  field.id === 'address'
+
+                if (field.id === 'zipCode') {
+                  return (
+                    <label key={field.id} className="form-field" htmlFor={inputId}>
+                      <span>{field.label}</span>
+                      <input
+                        id={inputId}
+                        type="text"
+                        placeholder="주소 검색으로 자동 입력됩니다"
+                        readOnly
+                        value={formData[inputId] || ''}
+                      />
+                      <small>주소 검색을 누르면 우편번호가 자동 입력됩니다.</small>
+                    </label>
+                  )
+                }
+
+                if (field.id === 'address') {
+                  return (
+                    <label key={field.id} className="form-field" htmlFor={inputId}>
+                      <span>{field.label}</span>
+                      <div className="form-field-control">
+                        <input
+                          id={inputId}
+                          type="text"
+                          placeholder="우편번호와 주소를 검색하세요"
+                          readOnly
+                          value={formData[inputId] || ''}
+                        />
+                        <button
+                          type="button"
+                          className="inline-action"
+                          onClick={handleAddressSearch}
+                        >
+                          주소 검색
+                        </button>
+                      </div>
+                      <small>도로명 주소가 자동으로 입력되며 상세 주소만 직접 입력해주세요.</small>
+                    </label>
+                  )
+                }
 
                 return (
                   <label key={field.id} className="form-field" htmlFor={inputId}>
@@ -114,21 +236,29 @@ export default function SignupPage({
   readOnly={isReadOnly}
   disabled={isReadOnly}
   value={formData[inputId] || ""}
-  onChange={(e) =>
-    setFormData({
-      ...formData,
-      [inputId]: e.target.value,
-    })
-  }
+    onChange={(e) => handleChange(inputId, e.target.value)}
 />
 
                       {field.actionLabel ? (
-                        <button type="button" className="inline-action">
+                        <button
+                          type="button"
+                          className="inline-action"
+                          onClick={
+                            field.id === 'email'
+                              ? handleSendEmailCode
+                              : field.id === 'emailCode'
+                              ? handleVerifyEmailCode
+                              : undefined
+                          }
+                        >
                           {field.actionLabel}
                         </button>
                       ) : null}
                     </div>
                     {field.helper ? <small>{field.helper}</small> : null}
+                    {field.id === 'email' && verifiedEmails[membership] && (
+                      <small className="status-success">이메일 인증이 완료되었습니다.</small>
+                    )}
                   </label>
                 )
               })}
@@ -148,7 +278,11 @@ export default function SignupPage({
   type="button"
   className="submit-button"
   disabled={!agreeTerms}
-  onClick={() => onSignupSubmit(formData, membership)}
+   onClick={() =>
+     onSignupSubmit(formData, membership, {
+       emailVerified: Boolean(verifiedEmails[membership])
+     })
+   }
 >
   CREATE AN ACCOUNT
 </button>

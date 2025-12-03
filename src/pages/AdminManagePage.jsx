@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import '../styles/admin-manage.css';
 
 export default function AdminManagePage({
@@ -16,7 +16,9 @@ export default function AdminManagePage({
   onSendMatchingInvite,
   onResetPassword,
   onDeleteUser,
-  onNavigateHome
+  onNavigateHome,
+  initialPanel = 'members',
+  onPanelChange
 }) {
   // 디버깅: props 확인 (개발 환경에서만)
   if (process.env.NODE_ENV === 'development') {
@@ -38,12 +40,23 @@ const [showModal, setShowModal] = useState(false);
   // 페이지네이션
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
-  const [activePanel, setActivePanel] = useState('members');
+  const [activePanel, setActivePanel] = useState(initialPanel || 'members');
   const [matchSelections, setMatchSelections] = useState({});
   const [pendingItemUpdates, setPendingItemUpdates] = useState({});
   const [imageModal, setImageModal] = useState(null);
   const [reasonModal, setReasonModal] = useState(null);
   const [reasonText, setReasonText] = useState('');
+  useEffect(() => {
+    if (initialPanel && initialPanel !== activePanel) {
+      setActivePanel(initialPanel);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPanel]);
+
+  const handlePanelChange = panel => {
+    setActivePanel(panel);
+    onPanelChange?.(panel);
+  };
 
   // 토스트 메시지 함수
   const showToast = (message) => {
@@ -195,18 +208,17 @@ const [showModal, setShowModal] = useState(false);
   );
   const pendingInviteList = Array.isArray(matchingInvites) ? matchingInvites : [];
 
-  const getMatchingMemoText = (item) => {
-    if (item?.donationMethod === '직접 매칭') {
-      const targetOrg =
-        item.pendingOrganization ||
-        item.donationOrganization ||
-        (item.organization && item.organization !== '자동 매칭' ? item.organization : null);
-      if (targetOrg) {
-        return `${targetOrg} 기관 확인 중입니다.`;
-      }
+  const getMatchingMemoText = item => {
+    if (item?.rejectionReason) return `거절: ${item.rejectionReason}`;
+    if (item?.pendingOrganization) return `${item.pendingOrganization} 기관 확인 중입니다.`;
+    if (
+      item?.donationMethod === '직접 매칭' &&
+      item?.donationOrganization &&
+      item?.status !== '승인대기'
+    ) {
+      return `${item.donationOrganization} 기관 확인 중입니다.`;
     }
     if (item?.matchingInfo) return item.matchingInfo;
-    if (item?.rejectionReason) return `거절: ${item.rejectionReason}`;
     return '-';
   };
 
@@ -394,16 +406,16 @@ const [showModal, setShowModal] = useState(false);
       </div>
 
       <div className="admin-tabs">
-        <button type="button" className={activePanel === 'members' ? 'active' : ''} onClick={() => setActivePanel('members')}>
+        <button type="button" className={activePanel === 'members' ? 'active' : ''} onClick={() => handlePanelChange('members')}>
           회원 관리
         </button>
-        <button type="button" className={activePanel === 'orgs' ? 'active' : ''} onClick={() => setActivePanel('orgs')}>
+        <button type="button" className={activePanel === 'orgs' ? 'active' : ''} onClick={() => handlePanelChange('orgs')}>
           기관 가입 승인
         </button>
-        <button type="button" className={activePanel === 'items' ? 'active' : ''} onClick={() => setActivePanel('items')}>
+        <button type="button" className={activePanel === 'items' ? 'active' : ''} onClick={() => handlePanelChange('items')}>
           물품 승인
         </button>
-        <button type="button" className={activePanel === 'matching' ? 'active' : ''} onClick={() => setActivePanel('matching')}>
+        <button type="button" className={activePanel === 'matching' ? 'active' : ''} onClick={() => handlePanelChange('matching')}>
           자동 매칭
         </button>
       </div>

@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
-import { mainNavLinks } from '../constants/landingData'
 
 export default function OrganizationDonationStatusPage({
   onNavigateHome,
@@ -148,7 +147,7 @@ export default function OrganizationDonationStatusPage({
     <section className="main-page donation-status-page">
       <div className="main-shell donation-status-shell">
         <HeaderLanding
-          navLinks={mainNavLinks}
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onNavClick={onNavLink}
           isLoggedIn={isLoggedIn}

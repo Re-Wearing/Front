@@ -10,7 +10,8 @@ export default function InquiryPage({
   onNotifications,
   unreadCount,
   onSubmitInquiry = () => ({ success: true }),
-  onMenu = () => {}
+  onMenu = () => {},
+  currentUser = null
 }) {
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
@@ -41,6 +42,7 @@ export default function InquiryPage({
     <section className="main-page inquiry-page">
       <div className="main-shell inquiry-shell">
         <HeaderLanding
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onNavClick={onNavLink}
           onNotifications={onNotifications}

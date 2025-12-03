@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import HeaderLanding from '../components/HeaderLanding'
-import { mainNavLinks } from '../constants/landingData'
 import '../styles/board-write.css'
 
 export default function BoardWritePage({
@@ -23,9 +22,37 @@ export default function BoardWritePage({
   
   // 사용자 역할에 따라 게시판 타입 제한
   const userRole = currentUser?.role || ''
-  const isOrganization = userRole === '기관 회원' || userRole === '관리자 회원'
-  const allowedBoardType = isOrganization ? 'request' : 'review'
-  const [selectedBoardType, setSelectedBoardType] = useState(allowedBoardType)
+  const canWriteReview = ['일반 회원', '기관 회원', '관리자 회원'].includes(userRole)
+  const canWriteRequest = userRole === '기관 회원' || userRole === '관리자 회원'
+  const initialBoardType =
+    boardType === 'request'
+      ? canWriteRequest
+        ? 'request'
+        : 'review'
+      : canWriteReview
+      ? 'review'
+      : canWriteRequest
+      ? 'request'
+      : 'review'
+  const [selectedBoardType, setSelectedBoardType] = useState(initialBoardType)
+
+  useEffect(() => {
+    setSelectedBoardType(
+      boardType === 'request' && canWriteRequest ? 'request' : canWriteReview ? 'review' : initialBoardType
+    )
+  }, [boardType, canWriteRequest, canWriteReview])
+
+  const handleSelectBoardType = type => {
+    if (type === 'request' && !canWriteRequest) {
+      window.alert('요청 게시판은 기관 회원만 작성할 수 있습니다.')
+      return
+    }
+    if (type === 'review' && !canWriteReview) {
+      window.alert('게시글 작성 권한이 없습니다.')
+      return
+    }
+    setSelectedBoardType(type)
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -44,6 +71,15 @@ export default function BoardWritePage({
     }
 
     setErrors({})
+    if (selectedBoardType === 'request' && !canWriteRequest) {
+      window.alert('요청 게시판 작성 권한이 없습니다.')
+      return
+    }
+    if (selectedBoardType === 'review' && !canWriteReview) {
+      window.alert('게시글 작성 권한이 없습니다.')
+      return
+    }
+
     const result = onSubmit({
       title: title.trim(),
       content: content.trim(),
@@ -70,9 +106,9 @@ export default function BoardWritePage({
 
   return (
     <div className="board-write-page">
-      <div className="board-write-shell">
+      <div className="board-write-topbar">
         <HeaderLanding
-          navLinks={mainNavLinks}
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onLogin={onLogin}
           onNavClick={onNavLink}
@@ -82,6 +118,8 @@ export default function BoardWritePage({
           unreadCount={unreadCount}
           onMenu={onMenu}
         />
+      </div>
+      <div className="board-write-shell">
 
         <div className="board-write-header">
           <button type="button" className="btn-back" onClick={handleCancel}>
@@ -98,25 +136,26 @@ export default function BoardWritePage({
               <label htmlFor="board-type">게시판</label>
             </div>
             <div className="board-type-select">
-              {!isOrganization && (
-                <button
-                  type="button"
-                  className={`type-btn ${selectedBoardType === 'review' ? 'active' : ''}`}
-                  onClick={() => setSelectedBoardType('review')}
-                >
-                  기부 후기
-                </button>
-              )}
-              {isOrganization && (
-                <button
-                  type="button"
-                  className={`type-btn ${selectedBoardType === 'request' ? 'active' : ''}`}
-                  onClick={() => setSelectedBoardType('request')}
-                >
-                  요청 게시판
-                </button>
-              )}
+              <button
+                type="button"
+                className={`type-btn ${selectedBoardType === 'review' ? 'active' : ''}`}
+                onClick={() => handleSelectBoardType('review')}
+                disabled={!canWriteReview}
+              >
+                기부 후기
+              </button>
+              <button
+                type="button"
+                className={`type-btn ${selectedBoardType === 'request' ? 'active' : ''}`}
+                onClick={() => handleSelectBoardType('request')}
+                disabled={!canWriteRequest}
+              >
+                요청 게시판
+              </button>
             </div>
+            {!canWriteRequest && (
+              <p className="board-type-hint">요청 게시판 글쓰기는 기관 회원만 가능합니다.</p>
+            )}
           </div>
 
           <div className="form-group">

@@ -19,7 +19,8 @@ export default function BoardDetailPage({
   boardPosts = { review: [], request: [] },
   boardViews = {},
   onUpdateViews = () => {},
-  onDeletePost = () => {}
+  onDeletePost = () => {},
+  notices = []
 }) {
   const [post, setPost] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -67,9 +68,11 @@ export default function BoardDetailPage({
     let foundPost = null
     let foundType = postType
 
+    const combinedNotices = [...notices, ...boardNotices]
+
     // 공지사항 확인 (문자열 ID)
     if (typeof postId === 'string' && postId.startsWith('notice-')) {
-      foundPost = boardNotices.find(n => n.id === postId)
+      foundPost = combinedNotices.find(n => String(n.id) === String(postId))
       if (foundPost) foundType = 'notice'
     }
 
@@ -112,7 +115,7 @@ export default function BoardDetailPage({
     }
 
     setLoading(false)
-  }, [postId, postType, boardPosts, boardViews])
+  }, [postId, postType, boardPosts, boardViews, notices])
 
   if (loading) {
     return (
@@ -143,7 +146,11 @@ export default function BoardDetailPage({
                          boardPosts.review?.some(p => Number(p.id) === Number(postId)) ? 'review' : 'request'
 
   // 현재 사용자가 게시글 작성자인지 확인 (공지사항은 삭제 불가)
-  const isAuthor = currentUser && post && currentPostType !== 'notice' && currentUser.username === post.writer
+  const isAuthor =
+    currentUser &&
+    post &&
+    currentPostType !== 'notice' &&
+    ((post.author && currentUser.username === post.author) || (!post.author && currentUser.username === post.writer))
 
   const handleDelete = () => {
     if (!window.confirm('정말 이 게시글을 삭제하시겠습니까?')) {
@@ -162,6 +169,7 @@ export default function BoardDetailPage({
       <div className="board-detail-shell">
         <HeaderLanding
           navLinks={navLinks}
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onLogin={onLogin}
           onNavClick={onNavLink}

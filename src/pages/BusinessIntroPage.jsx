@@ -21,6 +21,7 @@ export default function BusinessIntroPage({
 
         <HeaderLanding
           navLinks={navLinks}
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onNavClick={onNavLink}
           onLogin={onLogin}

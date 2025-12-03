@@ -1,8 +1,9 @@
 import Logo from './Logo'
-import { mainNavLinks } from '../constants/landingData'
+import { mainNavLinks, getNavLinksForRole } from '../constants/landingData'
 
 export default function HeaderLanding({
-  navLinks = mainNavLinks,
+  navLinks,
+  role,
   onLogin = () => {},
   onMenu = () => {},
   onNotifications = () => {},
@@ -21,6 +22,9 @@ export default function HeaderLanding({
     }
   }
 
+  const resolvedNavLinks =
+    (navLinks && navLinks.length ? navLinks : getNavLinksForRole(role)) || mainNavLinks
+
   return (
     <header className="header_landing">
       {onLogoClick ? (
@@ -31,9 +35,9 @@ export default function HeaderLanding({
         logo
       )}
 
-      {navLinks.length > 0 && (
+      {resolvedNavLinks.length > 0 && (
         <nav className="header_nav">
-          {navLinks.map(link => (
+          {resolvedNavLinks.map(link => (
             <a key={link.href} href={link.href} onClick={event => handleNavClick(event, link)}>
               {link.label}
             </a>

@@ -6,6 +6,15 @@
     linear-gradient(120deg, rgba(244, 235, 222, 0.85), rgba(238, 220, 198, 0.95));
 }
 
+.board-write-topbar {
+  max-width: 1200px;
+  margin: 0 auto 1.5rem;
+}
+
+.board-write-topbar .header_landing {
+  border-radius: 24px;
+}
+
 .board-write-shell {
   max-width: 800px;
   margin: 0 auto;
@@ -108,6 +117,17 @@
   background: #987653;
   color: #fff;
   border-color: #987653;
+}
+
+.type-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.board-type-hint {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: rgba(47, 38, 28, 0.7);
 }
 
 .form-input {

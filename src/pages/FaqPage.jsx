@@ -45,7 +45,8 @@ export default function FaqPage({
   hasInquiries = false,
   answeredCount = 0,
   onViewAnswers = () => {},
-  onMenu = () => {}
+  onMenu = () => {},
+  currentUser = null
 }) {
   const [openIndexes, setOpenIndexes] = useState(() => new Set())
 
@@ -65,6 +66,7 @@ export default function FaqPage({
     <section className="main-page faq-page">
       <div className="main-shell faq-shell">
         <HeaderLanding
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onNavClick={onNavLink}
           onNotifications={onNotifications}

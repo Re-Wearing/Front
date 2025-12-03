@@ -10,7 +10,8 @@ export default function AdminFaqPage({
   unreadCount,
   adminInquiries = [],
   onSubmitAnswer = () => {},
-  onMenu = () => {}
+  onMenu = () => {},
+  currentUser = null
 }) {
   const [responses, setResponses] = useState({})
 
@@ -33,6 +34,7 @@ export default function AdminFaqPage({
     <section className="main-page admin-faq-page">
       <div className="main-shell admin-faq-shell">
         <HeaderLanding
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onNavClick={onNavLink}
           onNotifications={onNotifications}

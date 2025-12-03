@@ -33,8 +33,10 @@ const getMenuCategories = role => {
   if (role === '기관 회원') {
     return [
       {
-        label: '기부 관리',
-        href: '/donation-status'
+        title: '기부 관리',
+        items: [
+          { label: '내 기부 관리', href: '/donation-status' }
+        ]
       },
       {
         title: '게시판',
@@ -76,7 +78,7 @@ const getMenuCategories = role => {
       title: '마이페이지',
       items: [
         { label: '마이페이지', href: '#mypage' },
-        { label: '기부 현황 조회', href: '/donation-status' }
+        { label: '내 기부 관리', href: '/donation-status' }
       ]
     },
     {

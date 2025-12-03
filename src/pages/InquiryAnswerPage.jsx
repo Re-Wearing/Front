@@ -9,7 +9,8 @@ export default function InquiryAnswerPage({
   unreadCount,
   onBackToFaq,
   inquiries = [],
-  onDeleteInquiry = () => {}
+  onDeleteInquiry = () => {},
+  currentUser = null
 }) {
   const answered = inquiries.filter(item => item.status === 'answered')
 
@@ -17,6 +18,7 @@ export default function InquiryAnswerPage({
     <section className="main-page faq-page">
       <div className="main-shell faq-shell">
         <HeaderLanding
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onNavClick={onNavLink}
           onNotifications={onNotifications}

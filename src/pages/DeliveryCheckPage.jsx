@@ -1,5 +1,4 @@
 import HeaderLanding from "../components/HeaderLanding"
-import { mainNavLinks } from "../constants/landingData"
 
 export default function DeliveryCheckPage({
   onNavigateHome,
@@ -68,7 +67,7 @@ export default function DeliveryCheckPage({
       <div className="main-shell delivery-check-shell">
 
         <HeaderLanding
-          navLinks={mainNavLinks}
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onNavClick={onNavLink}
           isLoggedIn={isLoggedIn}

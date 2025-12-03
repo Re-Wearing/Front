@@ -9,7 +9,8 @@ export default function InquiryAnswersPage({
   unreadCount,
   onBackToFaq,
   inquiries = [],
-  onMenu = () => {}
+  onMenu = () => {},
+  currentUser = null
 }) {
   const ordered = [...inquiries].sort((a, b) => (a.submittedAt > b.submittedAt ? -1 : 1))
 
@@ -17,6 +18,7 @@ export default function InquiryAnswersPage({
     <section className="main-page faq-page">
       <div className="main-shell faq-shell">
         <HeaderLanding
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onNavClick={onNavLink}
           onNotifications={onNotifications}

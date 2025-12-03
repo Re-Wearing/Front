@@ -61,6 +61,8 @@ export default function LoginPage({
       setTimeout(() => {
         onNavigateHome()
       }, 800)
+    } else if (result?.reason === 'orgPending') {
+      setMessage('기관 계정은 관리자 승인 후 로그인할 수 있습니다.')
     } else {
       setMessage('아이디 또는 비밀번호가 올바르지 않습니다.')
     }
@@ -71,6 +73,7 @@ export default function LoginPage({
       <div className="auth-shell">
         <HeaderLanding
           navLinks={navLinks}
+          role={currentUser?.role}
           onLogoClick={onNavigateHome}
           onLogin={() => {}}
           onNavClick={onNavLink}
